@@ -22,7 +22,7 @@ public:
 	virtual void EndFocus() override;
 	virtual void BeginInteract() override;
 	virtual void EndInteract() override;
-	virtual void Interact(AActor* Interactor) override;
+	virtual void Interact(AAetherworksCharacter* PlayerCharacter) override;
 
 protected:
 	// Called when the game starts or when spawned

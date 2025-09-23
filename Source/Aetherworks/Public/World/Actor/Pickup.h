@@ -7,6 +7,7 @@
 #include "Interfaces/InteractionInterface.h"
 #include "Pickup.generated.h"
 
+class AAetherworksCharacter;
 class UItemBase;
 
 UCLASS()
@@ -39,11 +40,11 @@ protected:
 	
 	virtual void BeginPlay() override;
 	
-	virtual void Interact(AActor* Interactor) override;
+	virtual void Interact(AAetherworksCharacter* PlayerCharacter) override;
 
 	void UpdateInteractableData();
 	
-	void TakePickup(AActor* Taker);
+	void TakePickup(AAetherworksCharacter* Taker);
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

@@ -8,6 +8,7 @@
 #include "Interfaces/InteractionInterface.h"
 #include "AetherworksCharacter.generated.h"
 
+class UInventoryComponent;
 class AAetherworksCharacterHUD;
 class USpringArmComponent;
 class UCameraComponent;
@@ -62,6 +63,9 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE bool IsInteracting() const { return GetWorldTimerManager().IsTimerActive(TimerHandle_Interaction); }
+	FORCEINLINE UInventoryComponent* GetInventory() const { return PlayerInventory; }
+
+	void UpdateInteractionWidget() const;
 
 	//============================================================================================================
 	//	PROPERTIES & VARIABLES
@@ -112,6 +116,10 @@ protected:
 	float InteractionCheckDistance;
 	FTimerHandle TimerHandle_Interaction;
 	FInteractionData InteractionData;
+
+	//=== Components ===
+	UPROPERTY(VisibleAnywhere, Category = "Character | Inventory")
+	UInventoryComponent* PlayerInventory;
 
 	//=== HUD ===
 	UPROPERTY()

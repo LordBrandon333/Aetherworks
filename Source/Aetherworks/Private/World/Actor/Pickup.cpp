@@ -3,6 +3,8 @@
 
 #include "World/Actor/Pickup.h"
 
+#include "Components/InventoryComponent.h"
+#include "Player/AetherworksCharacter.h"
 #include "Items/ItemBase.h"
 
 
@@ -81,25 +83,48 @@ void APickup::EndFocus()
 	}
 }
 
-void APickup::Interact(AActor* Interactor)
+void APickup::Interact(AAetherworksCharacter* PlayerCharacter)
 {
-	if (Interactor)
+	if (PlayerCharacter)
 	{
-		TakePickup(Interactor);
+		TakePickup(PlayerCharacter);
 	}
 }
 
-void APickup::TakePickup(AActor* Taker)
+void APickup::TakePickup(AAetherworksCharacter* Taker)
 {
 	if (!IsPendingKillPending())
 	{
 		if (ItemReference)
 		{
-			//if (UInventoryComponent* ActorInventory = Taker->GetInventory())
-			
-			// try to add item to player inventory
-			// based on result of the add operation
-			// adjust or destroy the pickup
+			if (UInventoryComponent* PlayerInventory = Taker->GetInventory())
+			{
+				const FItemAddResult AddResult = PlayerInventory->HandleAddItem(ItemReference);
+
+				switch (AddResult.OperationResult) {
+				case IAR_NoItemAdded:
+					break;
+					
+				case IAR_PartialAmountAdded:
+					UpdateInteractableData();
+					Taker->UpdateInteractionWidget();
+					break;
+					
+				case IAR_AllItemAdded:
+					Destroy();
+					break;
+				}
+
+				UE_LOG(LogTemp, Warning, TEXT("%s"), *AddResult.ResultMessage.ToString());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Player inventory component is null!"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Pickup internal item reference was somehow null!"));
 		}
 	}
 }

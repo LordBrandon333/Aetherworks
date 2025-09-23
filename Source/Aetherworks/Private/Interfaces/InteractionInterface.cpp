@@ -20,7 +20,8 @@ void IInteractionInterface::EndInteract()
 {
 }
 
-void IInteractionInterface::Interact(AActor* Interactor)
+void IInteractionInterface::Interact(AAetherworksCharacter* PlayerCharacter)
 {
 }
+
 

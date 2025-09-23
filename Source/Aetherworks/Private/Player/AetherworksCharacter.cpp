@@ -12,6 +12,7 @@
 #include "InputActionValue.h"
 #include "Aetherworks.h"
 #include "DrawDebugHelpers.h"
+#include "Components/InventoryComponent.h"
 #include "UserInterface/AetherworksCharacterHUD.h"
 
 AAetherworksCharacter::AAetherworksCharacter()
@@ -47,6 +48,11 @@ AAetherworksCharacter::AAetherworksCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+
+	// Create Inventory
+	PlayerInventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("PlayerInventory"));
+	PlayerInventory->SetSlotsCapacity(20);
+	PlayerInventory->SetWeightCapacity(50);
 
 	InteractionCheckFrequency = 0.1f;
 	InteractionCheckDistance = 225.f;
@@ -225,6 +231,14 @@ void AAetherworksCharacter::Interact()
 	if (IsValid(TargetInteractable.GetObject()))
 	{
 		TargetInteractable->Interact(this);
+	}
+}
+
+void AAetherworksCharacter::UpdateInteractionWidget() const
+{
+	if (IsValid(TargetInteractable.GetObject()))
+	{
+		HUD->UpdateInteractionWidget(&TargetInteractable->InteractableData);
 	}
 }
 

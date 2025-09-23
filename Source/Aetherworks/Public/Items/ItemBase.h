@@ -8,6 +8,8 @@
 #include "ItemBase.generated.h"
 
 
+class UInventoryComponent;
+
 UCLASS()
 class AETHERWORKS_API UItemBase : public UObject
 {
@@ -19,6 +21,8 @@ public:
 	//============================================================================================================
 
 	UItemBase();
+
+	void ResetItemFlags();
 
 	UFUNCTION(Category = "Item")
 	UItemBase* CreateItemCopy() const;
@@ -42,8 +46,8 @@ public:
 	//	PROPERTIES & VARIABLES
 	//============================================================================================================
 	
-	//UPROPERTY()
-	//UInventoryComponent* OwningInventory;
+	UPROPERTY()
+	UInventoryComponent* OwningInventory;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Item")
 	int32 Quantity;
@@ -68,6 +72,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = "Item")
 	FItemAssetData ItemAssetData;
+
+	bool bIsCopy;
+	bool bIsPickup;
 
 protected:
 	bool operator==(const FName& OtherID) const
