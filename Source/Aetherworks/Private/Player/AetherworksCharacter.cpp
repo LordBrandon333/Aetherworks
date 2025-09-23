@@ -12,6 +12,7 @@
 #include "InputActionValue.h"
 #include "Aetherworks.h"
 #include "DrawDebugHelpers.h"
+#include "UserInterface/AetherworksCharacterHUD.h"
 
 AAetherworksCharacter::AAetherworksCharacter()
 {
@@ -54,6 +55,8 @@ AAetherworksCharacter::AAetherworksCharacter()
 void AAetherworksCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	HUD = Cast<AAetherworksCharacterHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
 }
 
 void AAetherworksCharacter::Tick(float DeltaSeconds)
@@ -156,6 +159,8 @@ void AAetherworksCharacter::FoundInteractable(AActor* NewInteractable)
 	InteractionData.CurrentInteractable = NewInteractable;
 	TargetInteractable = NewInteractable;
 
+	HUD->UpdateInteractionWidget((&TargetInteractable->InteractableData));
+
 	TargetInteractable->BeginFocus();
 }
 
@@ -173,7 +178,7 @@ void AAetherworksCharacter::NoInteractableFound()
 			TargetInteractable->EndFocus();
 		}
 
-		// hide interaction widget on the HUD
+		HUD->HideInteractionWidget();
 
 		InteractionData.CurrentInteractable = nullptr;
 		TargetInteractable = nullptr;

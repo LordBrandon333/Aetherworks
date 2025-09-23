@@ -8,6 +8,7 @@
 #include "Interfaces/InteractionInterface.h"
 #include "AetherworksCharacter.generated.h"
 
+class AAetherworksCharacterHUD;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputAction;
@@ -111,5 +112,9 @@ protected:
 	float InteractionCheckDistance;
 	FTimerHandle TimerHandle_Interaction;
 	FInteractionData InteractionData;
+
+	//=== HUD ===
+	UPROPERTY()
+	AAetherworksCharacterHUD* HUD;
 };
 

@@ -19,7 +19,8 @@ AInteractTestActor::AInteractTestActor()
 void AInteractTestActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	InteractableData = InstanceInteractableData;
 }
 
 // Called every frame
