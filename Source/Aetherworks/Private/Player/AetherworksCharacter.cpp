@@ -111,10 +111,10 @@ void AAetherworksCharacter::PerformInteractionCheck()
 {
 	InteractionData.LastInteractionCheckTime = GetWorld()->GetTimeSeconds();
 
-	FVector TraceStart{GetPawnViewLocation()};
-	FVector TraceEnd{TraceStart + (GetViewRotation().Vector() * InteractionCheckDistance)};
+	const FVector TraceStart{GetPawnViewLocation()};
+	const FVector TraceEnd{TraceStart + (GetViewRotation().Vector() * InteractionCheckDistance)};
 
-	float LookDirection = FVector::DotProduct(GetActorForwardVector(), GetViewRotation().Vector());
+	const float LookDirection = FVector::DotProduct(GetActorForwardVector(), GetViewRotation().Vector());
 
 	if (LookDirection > 0)
 	{
@@ -128,9 +128,7 @@ void AAetherworksCharacter::PerformInteractionCheck()
 		{
 			if (TraceHit.GetActor()->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
 			{
-				const float Distance = (TraceStart - TraceHit.ImpactPoint).Size();
-
-				if (TraceHit.GetActor() != InteractionData.CurrentInteractable && Distance <= InteractionCheckDistance)
+				if (TraceHit.GetActor() != InteractionData.CurrentInteractable)
 				{
 					FoundInteractable(TraceHit.GetActor());
 					return;
@@ -221,7 +219,7 @@ void AAetherworksCharacter::Interact()
 
 	if (IsValid(TargetInteractable.GetObject()))
 	{
-		TargetInteractable->Interact();
+		TargetInteractable->Interact(this);
 	}
 }
 
