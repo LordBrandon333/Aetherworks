@@ -36,12 +36,11 @@ UCLASS(abstract)
 class AAetherworksCharacter : public ACharacter
 {
 	GENERATED_BODY()
-
-public:
 	
 	//============================================================================================================
 	//	FUNCTIONS
 	//============================================================================================================
+public:
 	
 	AAetherworksCharacter();
 
@@ -67,28 +66,14 @@ public:
 
 	void UpdateInteractionWidget() const;
 
-	//============================================================================================================
-	//	PROPERTIES & VARIABLES
-	//============================================================================================================
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* CameraBoom;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera;
-	
 protected:
 
-	//============================================================================================================
-	//	FUNCTIONS
-	//============================================================================================================
-	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
-	 //=== Interaction Interface ===
+	//=== Interaction Interface ===
 	void PerformInteractionCheck();
 	void FoundInteractable(AActor* NewInteractable);
 	void NoInteractableFound();
@@ -97,12 +82,20 @@ protected:
 	void Interact();
 
 	void ToggleMenu();
-
-protected:
+	
 	//============================================================================================================
 	//	PROPERTIES & VARIABLES
 	//============================================================================================================
+public:
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	USpringArmComponent* CameraBoom;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* FollowCamera;
 
+protected:
+	
 	//=== Input Actions ===
 	UPROPERTY(EditAnywhere, Category="Input") UInputAction* JumpAction;
 	UPROPERTY(EditAnywhere, Category="Input") UInputAction* MoveAction;
