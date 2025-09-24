@@ -105,12 +105,12 @@ protected:
 	
 	virtual void BeginPlay() override;
 
-	FItemAddResult HandleNonStackableItems(UItemBase* InputItem, int32 RequestedAmount);
+	FItemAddResult HandleNonStackableItems(UItemBase* InputItem);
 	int32 HandleStackableItems(UItemBase* InputItem, int32 RequestedAmount);
 	int32 CalculateWeightAddAmount(UItemBase* ItemIn, int32 RequestedAmount);
 	int32 CalculateNumberForFullStack(UItemBase* StackableItem, int32 InitialRequestAddAmount);
 
-	void AddNewItem(UItemBase* Item, const int32 AmountToAdd);
+	void AddNewItem(UItemBase* Item, const int32 AmountToAdd = 1);
 
 	//============================================================================================================
 	//	PROPERTIES & VARIABLES

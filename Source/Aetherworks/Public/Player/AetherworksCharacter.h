@@ -96,6 +96,8 @@ protected:
 	void EndInteract();
 	void Interact();
 
+	void ToggleMenu();
+
 protected:
 	//============================================================================================================
 	//	PROPERTIES & VARIABLES
@@ -107,6 +109,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Input") UInputAction* LookAction;
 	UPROPERTY(EditAnywhere, Category="Input") UInputAction* MouseLookAction;
 	UPROPERTY(EditAnywhere, Category="Input") UInputAction* InteractAction;
+	UPROPERTY(EditAnywhere, Category="Input") UInputAction* ToggleMenuAction;
 
 	//=== Interaction Interface ===
 	UPROPERTY(VisibleAnywhere, Category = "Character | Interaction")

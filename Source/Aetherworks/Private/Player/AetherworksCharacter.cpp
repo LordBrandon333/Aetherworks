@@ -91,6 +91,9 @@ void AAetherworksCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 		// Interact
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AAetherworksCharacter::BeginInteract);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &AAetherworksCharacter::EndInteract);
+
+		// Menu
+		EnhancedInputComponent->BindAction(ToggleMenuAction, ETriggerEvent::Started, this, &AAetherworksCharacter::ToggleMenu);
 	}
 	else
 	{
@@ -232,6 +235,11 @@ void AAetherworksCharacter::Interact()
 	{
 		TargetInteractable->Interact(this);
 	}
+}
+
+void AAetherworksCharacter::ToggleMenu()
+{
+	HUD->ToggleMenu();
 }
 
 void AAetherworksCharacter::UpdateInteractionWidget() const
