@@ -15,15 +15,14 @@ class AETHERWORKS_API APickup : public AActor, public IInteractionInterface
 {
 	GENERATED_BODY()
 	
-public:	
-
 	//============================================================================================================
 	//	FUNCTIONS
 	//============================================================================================================
+public:
 	
 	APickup();
 
-	void InitializePickup(const TSubclassOf<UItemBase> BaseClass, const int32 InQuantity);
+	void InitializePickup(const int32 InQuantity);
 
 	void InitializeDrop(UItemBase* ItemToDrop, const int32 InQuantity);
 
@@ -33,10 +32,6 @@ public:
 	virtual void EndFocus() override;
 	
 protected:
-
-	//============================================================================================================
-	//	FUNCTIONS
-	//============================================================================================================
 	
 	virtual void BeginPlay() override;
 	
@@ -50,20 +45,16 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	
-	
-protected:
 	//============================================================================================================
 	//	PROPERTIES & VARIABLES
 	//============================================================================================================
-
+protected:
+	
 	UPROPERTY(VisibleAnywhere, Category = "Pickup | Components")
 	UStaticMeshComponent* PickupMesh;
-
+	
 	UPROPERTY(EditInstanceOnly, Category = "Pickup | Item Initialization")
-	UDataTable* ItemDataTable;
-
-	UPROPERTY(EditInstanceOnly, Category = "Pickup | Item Initialization")
-	FName DesiredItemID;
+	FDataTableRowHandle ItemRowHandle;
 	
 	UPROPERTY(EditInstanceOnly, Category = "Pickup | Item Initialization")
 	int32 ItemQuantity;
