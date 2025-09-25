@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -8,6 +6,7 @@
 #include "Interfaces/InteractionInterface.h"
 #include "AetherworksCharacter.generated.h"
 
+#pragma region forward declares
 class UTimelineComponent;
 class UItemBase;
 class UInventoryComponent;
@@ -16,7 +15,9 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputAction;
 struct FInputActionValue;
+#pragma endregion
 
+#pragma region structs
 USTRUCT()
 struct FInteractionData
 {
@@ -31,8 +32,11 @@ struct FInteractionData
 	float LastInteractionCheckTime;
 	
 };
+#pragma endregion
 
+#pragma region delegates
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
+#pragma endregion
 
 UCLASS(abstract)
 class AAetherworksCharacter : public ACharacter
@@ -42,6 +46,7 @@ class AAetherworksCharacter : public ACharacter
 	//============================================================================================================
 	//	FUNCTIONS
 	//============================================================================================================
+#pragma region functions
 public:
 	
 	AAetherworksCharacter();
@@ -93,10 +98,12 @@ protected:
 	void UpdateCameraTimeline(const float TimelineValue) const;
 	UFUNCTION()
 	void CameraTimelineEnd();
+#pragma endregion
 	
 	//============================================================================================================
 	//	PROPERTIES & VARIABLES
 	//============================================================================================================
+#pragma region properties & variables
 public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
@@ -146,5 +153,5 @@ protected:
 	//=== HUD ===
 	UPROPERTY()
 	AAetherworksCharacterHUD* HUD;
+#pragma endregion
 };
-
