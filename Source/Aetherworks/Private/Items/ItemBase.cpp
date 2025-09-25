@@ -26,6 +26,7 @@ UItemBase* UItemBase::CreateItemCopy() const
 	ItemCopy->ItemNumericData = this->ItemNumericData;
 	ItemCopy->ItemStatistics = this->ItemStatistics;
 	ItemCopy->ItemAssetData = this->ItemAssetData;
+	
 	ItemCopy->bIsCopy = true;
 
 	return ItemCopy;
@@ -37,11 +38,17 @@ void UItemBase::SetQuantity(const int32 NewQuantity)
 	Quantity = FMath::Clamp(NewQuantity, 0, ItemNumericData.bIsStackable ? ItemNumericData.MaxStackSize : 1);
 
 	
-	if (OwningInventory)
+	if (this->OwningInventory)
 	{
-		if (Quantity <= 0)
+		if (this->Quantity <= 0)
 		{
-			OwningInventory->RemoveSingleInstanceOfItem(this);
+			this->OwningInventory->RemoveSingleInstanceOfItem(this);
+		}
+	}
+	else
+	{
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ItemBase OwningInventory was null (item may be a pickup)."))
 		}
 	}
 }

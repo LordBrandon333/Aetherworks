@@ -13,6 +13,7 @@
 #include "Aetherworks.h"
 #include "DrawDebugHelpers.h"
 #include "Components/InventoryComponent.h"
+#include "Components/TimelineComponent.h"
 #include "EntitySystem/MovieSceneEntitySystemRunner.h"
 #include "UserInterface/AetherworksCharacterHUD.h"
 #include "World/Actor/Pickup.h"
@@ -43,7 +44,7 @@ AAetherworksCharacter::AAetherworksCharacter()
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f;
+	CameraBoom->TargetArmLength = 300.0f;
 	CameraBoom->bUsePawnControlRotation = true;
 
 	// Create a follow camera
@@ -51,13 +52,22 @@ AAetherworksCharacter::AAetherworksCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
+	// default is 36.f, 88.f
+	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.f);
+	BaseEyeHeight = 76.f;
+
+	AimingCameraTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("AimingCameraTimeline"));
+	DefaultCameraLocation = FVector{0.f, 0.f, 65.f};
+	AimingCameraLocation = FVector{175.f, 50.f, 55.f};
+	CameraBoom->SocketOffset = DefaultCameraLocation;
+
 	// Create Inventory
 	PlayerInventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("PlayerInventory"));
 	PlayerInventory->SetSlotsCapacity(20);
 	PlayerInventory->SetWeightCapacity(50);
 
 	InteractionCheckFrequency = 0.1f;
-	InteractionCheckDistance = 225.f;
+	InteractionCheckDistance = 200.f;
 }
 
 void AAetherworksCharacter::BeginPlay()
@@ -65,6 +75,17 @@ void AAetherworksCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	HUD = Cast<AAetherworksCharacterHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
+
+	FOnTimelineFloat AimLerpAlphaValue;
+	FOnTimelineEvent TimelineFinishedEvent;
+	AimLerpAlphaValue.BindUFunction(this, FName("UpdateCameraTimeline"));
+	TimelineFinishedEvent.BindUFunction(this, FName("CameraTimelineEnd"));
+
+	if (AimingCameraTimeline && AimingCameraCurve)
+	{
+		AimingCameraTimeline->AddInterpFloat(AimingCameraCurve, AimLerpAlphaValue);
+		AimingCameraTimeline->SetTimelineFinishedFunc(TimelineFinishedEvent);
+	}
 }
 
 void AAetherworksCharacter::Tick(float DeltaSeconds)
@@ -90,6 +111,10 @@ void AAetherworksCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AAetherworksCharacter::Look);
 
+		// Aiming
+		EnhancedInputComponent->BindAction(AimingAction, ETriggerEvent::Started, this, &AAetherworksCharacter::Aim);
+		EnhancedInputComponent->BindAction(AimingAction, ETriggerEvent::Completed, this, &AAetherworksCharacter::StopAiming);
+		
 		// Interact
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AAetherworksCharacter::BeginInteract);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &AAetherworksCharacter::EndInteract);
@@ -125,7 +150,19 @@ void AAetherworksCharacter::PerformInteractionCheck()
 {
 	InteractionData.LastInteractionCheckTime = GetWorld()->GetTimeSeconds();
 
-	const FVector TraceStart{GetPawnViewLocation()};
+	FVector TraceStart {FVector::ZeroVector};
+
+	if (!bAiming)
+	{
+		InteractionCheckDistance = 200.f;
+		TraceStart = GetPawnViewLocation();
+	}
+	else
+	{
+		InteractionCheckDistance = 250.f;
+		TraceStart = FollowCamera->GetComponentLocation();
+	}
+	
 	const FVector TraceEnd{TraceStart + (GetViewRotation().Vector() * InteractionCheckDistance)};
 
 	const float LookDirection = FVector::DotProduct(GetActorForwardVector(), GetViewRotation().Vector());
@@ -242,6 +279,56 @@ void AAetherworksCharacter::Interact()
 void AAetherworksCharacter::ToggleMenu()
 {
 	HUD->ToggleMenu();
+
+	if (HUD->bIsMenuVisible) StopAiming();
+}
+
+void AAetherworksCharacter::Aim()
+{
+	if (!HUD->bIsMenuVisible)
+	{
+		bAiming = true;
+		bUseControllerRotationYaw = true;
+		GetCharacterMovement()->MaxWalkSpeed = 200.f;
+
+		if (AimingCameraTimeline)
+		{
+			AimingCameraTimeline->PlayFromStart();
+		}
+	}
+}
+
+void AAetherworksCharacter::StopAiming()
+{
+	if (bAiming)
+	{
+		bAiming = false;
+		bUseControllerRotationYaw = false;
+		HUD->HideCrosshair();
+		GetCharacterMovement()->MaxWalkSpeed = 500.f; // TODO: Create map (or just variables) with different walk speeds to not use magic numbers
+
+		if (AimingCameraTimeline)
+		{
+			AimingCameraTimeline->Reverse();
+		}
+	}
+}
+
+void AAetherworksCharacter::UpdateCameraTimeline(const float TimelineValue) const
+{
+	const FVector CameraLocation = FMath::Lerp(DefaultCameraLocation, AimingCameraLocation, TimelineValue);
+	CameraBoom->SocketOffset = CameraLocation;
+}
+
+void AAetherworksCharacter::CameraTimelineEnd()
+{
+	if (AimingCameraTimeline)
+	{
+		if (AimingCameraTimeline->GetPlaybackPosition() != 0.0f)
+		{
+			HUD->ShowCrosshair();
+		}
+	}
 }
 
 void AAetherworksCharacter::UpdateInteractionWidget() const

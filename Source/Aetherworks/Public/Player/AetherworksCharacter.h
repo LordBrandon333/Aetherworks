@@ -8,6 +8,7 @@
 #include "Interfaces/InteractionInterface.h"
 #include "AetherworksCharacter.generated.h"
 
+class UTimelineComponent;
 class UItemBase;
 class UInventoryComponent;
 class AAetherworksCharacterHUD;
@@ -85,6 +86,13 @@ protected:
 	void Interact();
 
 	void ToggleMenu();
+
+	void Aim();
+	void StopAiming();
+	UFUNCTION()
+	void UpdateCameraTimeline(const float TimelineValue) const;
+	UFUNCTION()
+	void CameraTimelineEnd();
 	
 	//============================================================================================================
 	//	PROPERTIES & VARIABLES
@@ -97,6 +105,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
+	bool bAiming;
+
 protected:
 	
 	//=== Input Actions ===
@@ -106,7 +116,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Input") UInputAction* MouseLookAction;
 	UPROPERTY(EditAnywhere, Category="Input") UInputAction* InteractAction;
 	UPROPERTY(EditAnywhere, Category="Input") UInputAction* ToggleMenuAction;
-
+	UPROPERTY(EditAnywhere, Category="Input") UInputAction* AimingAction;
+	
 	//=== Interaction Interface ===
 	UPROPERTY(VisibleAnywhere, Category = "Character | Interaction")
 	TScriptInterface<IInteractionInterface> TargetInteractable;
@@ -115,6 +126,18 @@ protected:
 	float InteractionCheckDistance;
 	FTimerHandle TimerHandle_Interaction;
 	FInteractionData InteractionData;
+
+	// timeline properties used for camera aiming transition
+	UPROPERTY(VisibleAnywhere, Category = "Character | Camera")
+	FVector DefaultCameraLocation;
+
+	UPROPERTY(VisibleAnywhere, Category = "Character | Camera")
+	FVector AimingCameraLocation;
+
+	TObjectPtr<UTimelineComponent> AimingCameraTimeline;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Character | Aim Timeline")
+	UCurveFloat* AimingCameraCurve;
 
 	//=== Components ===
 	UPROPERTY(VisibleAnywhere, Category = "Character | Inventory")

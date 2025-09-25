@@ -14,26 +14,33 @@ UCLASS()
 class AETHERWORKS_API AAetherworksCharacterHUD : public AHUD
 {
 	GENERATED_BODY()
-
-public:
-
+	
 	//============================================================================================================
 	//	FUNCTIONS
 	//============================================================================================================
-
+public:
+	
 	AAetherworksCharacterHUD();
 
 	void DisplayMenu();
 	void HideMenu();
 	void ToggleMenu();
 
+	void ShowCrosshair() const;
+	void HideCrosshair() const;
+
 	void ShowInteractionWidget() const;
 	void HideInteractionWidget() const;
 	void UpdateInteractionWidget(const FInteractableData* InteractableData) const;
+
+protected:
+	
+	virtual void BeginPlay() override;
 	
 	//============================================================================================================
 	//	PROPERTIES & VARIABLES
 	//============================================================================================================
+public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
 	TSubclassOf<UMainMenu> MainMenuClass;
@@ -41,24 +48,20 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
 	TSubclassOf<UInteractionWidget> InteractionWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
+	TSubclassOf<UUserWidget> CrosshairWidgetClass;
+
 	bool bIsMenuVisible = false;
 
 protected:
 	
-	//============================================================================================================
-	//	FUNCTIONS
-	//============================================================================================================
-	
-	virtual void BeginPlay() override;
-	
-	//============================================================================================================
-	//	PROPERTIES & VARIABLES
-	//============================================================================================================
-
 	UPROPERTY()
 	UMainMenu* MainMenuWidget;
 
 	UPROPERTY()
 	UInteractionWidget* InteractionWidget;
+
+	UPROPERTY()
+	UUserWidget* CrosshairWidget;
 	
 };
