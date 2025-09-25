@@ -17,6 +17,11 @@ class AETHERWORKS_API UDragItemVisual : public UUserWidget
 {
 	GENERATED_BODY()
 
+	//============================================================================================================
+	//	PROPERTIES & VARIABLES
+	//============================================================================================================
+public:
+
 	UPROPERTY(VisibleAnywhere, Category = "Drag Item Visual", meta = (BindWidget))
 	UBorder* ItemBorder;
 

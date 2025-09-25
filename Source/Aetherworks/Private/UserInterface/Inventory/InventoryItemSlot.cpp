@@ -7,7 +7,9 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Items/ItemBase.h"
+#include "UserInterface/Inventory/DragItemVisual.h"
 #include "UserInterface/Inventory/InventoryTooltip.h"
+#include "UserInterface/Inventory/ItemDragDropOperation.h"
 
 void UInventoryItemSlot::NativeOnInitialized()
 {
@@ -35,13 +37,13 @@ void UInventoryItemSlot::NativeConstruct()
 			ItemBorder->SetBrushColor(FLinearColor::White);
 			break;
 		case EItemQuality::Quality:
-			ItemBorder->SetBrushColor(FLinearColor::Green);
+			ItemBorder->SetBrushColor(FLinearColor(0.f, 0.51f, 0.169f, 1.f));
 			break;
 		case EItemQuality::Masterwork:
-			ItemBorder->SetBrushColor(FLinearColor::Blue);
+			ItemBorder->SetBrushColor(FLinearColor(0.f, 0.4f, 0.75f, 1.f));
 			break;
 		case EItemQuality::Grandmaster:
-			ItemBorder->SetBrushColor(FLinearColor(100.f, 65.f, 0.f, 1.0f)); // orange color
+			ItemBorder->SetBrushColor(FLinearColor(1.f, 0.45f, 0.f, 1.0f)); // orange color
 			break;
 		}
 
@@ -60,7 +62,16 @@ void UInventoryItemSlot::NativeConstruct()
 
 FReply UInventoryItemSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+	FReply Reply = Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		return Reply.Handled().DetectDrag(TakeWidget(), EKeys::LeftMouseButton);
+	}
+
+	// submenu on right click will happen here 
+
+	return Reply.Unhandled();
 }
 
 void UInventoryItemSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
@@ -72,6 +83,23 @@ void UInventoryItemSlot::NativeOnDragDetected(const FGeometry& InGeometry, const
 	UDragDropOperation*& OutOperation)
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
+
+	if (DragItemVisualClass)
+	{
+		const TObjectPtr<UDragItemVisual> DragVisual = CreateWidget<UDragItemVisual>(this, DragItemVisualClass);
+		DragVisual->ItemIcon->SetBrushFromTexture(ItemReference->ItemAssetData.Icon);
+		DragVisual->ItemBorder->SetBrushColor(ItemBorder->GetBrushColor());
+		DragVisual->ItemQuantity->SetText(FText::AsNumber(ItemReference->Quantity));
+
+		UItemDragDropOperation* DragItemOperation = NewObject<UItemDragDropOperation>();
+		DragItemOperation->SourceItem = ItemReference;
+		DragItemOperation->SourceInventory = ItemReference->OwningInventory;
+
+		DragItemOperation->DefaultDragVisual = DragVisual;
+		DragItemOperation->Pivot = EDragPivot::TopLeft;
+
+		OutOperation = DragItemOperation;
+	}
 }
 
 bool UInventoryItemSlot::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,

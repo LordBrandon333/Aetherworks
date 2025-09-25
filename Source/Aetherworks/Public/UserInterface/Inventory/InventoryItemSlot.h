@@ -12,9 +12,8 @@ class UTextBlock;
 class UInventoryTooltip;
 class UDragItemVisual;
 class UItemBase;
-/**
- * 
- */
+
+
 UCLASS()
 class AETHERWORKS_API UInventoryItemSlot : public UUserWidget
 {

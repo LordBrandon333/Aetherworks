@@ -8,6 +8,7 @@
 #include "Interfaces/InteractionInterface.h"
 #include "AetherworksCharacter.generated.h"
 
+class UItemBase;
 class UInventoryComponent;
 class AAetherworksCharacterHUD;
 class USpringArmComponent;
@@ -65,6 +66,8 @@ public:
 	FORCEINLINE UInventoryComponent* GetInventory() const { return PlayerInventory; }
 
 	void UpdateInteractionWidget() const;
+
+	void DropItem(UItemBase* ItemToDrop, const int32 QuantityToDrop);
 
 protected:
 

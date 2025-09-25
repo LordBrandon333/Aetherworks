@@ -15,22 +15,20 @@ class AETHERWORKS_API UMainMenu : public UUserWidget
 {
 	GENERATED_BODY()
 
-public:
-
-	//============================================================================================================
-	//	PROPERTIES & VARIABLES
-	//============================================================================================================
-	
-	UPROPERTY()
-	AAetherworksCharacter* PlayerCharacter;
-
-protected:
-
 	//============================================================================================================
 	//	FUNCTIONS
 	//============================================================================================================
+protected:
 	
 	virtual void NativeOnInitialized() override;
 	virtual void NativeConstruct() override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+	
+	//============================================================================================================
+	//	PROPERTIES & VARIABLES
+	//============================================================================================================
+public:
+	
+	UPROPERTY()
+	AAetherworksCharacter* PlayerCharacter;
 };

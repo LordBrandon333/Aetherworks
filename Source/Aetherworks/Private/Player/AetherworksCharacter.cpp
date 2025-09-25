@@ -13,7 +13,9 @@
 #include "Aetherworks.h"
 #include "DrawDebugHelpers.h"
 #include "Components/InventoryComponent.h"
+#include "EntitySystem/MovieSceneEntitySystemRunner.h"
 #include "UserInterface/AetherworksCharacterHUD.h"
+#include "World/Actor/Pickup.h"
 
 AAetherworksCharacter::AAetherworksCharacter()
 {
@@ -247,6 +249,31 @@ void AAetherworksCharacter::UpdateInteractionWidget() const
 	if (IsValid(TargetInteractable.GetObject()))
 	{
 		HUD->UpdateInteractionWidget(&TargetInteractable->InteractableData);
+	}
+}
+
+void AAetherworksCharacter::DropItem(UItemBase* ItemToDrop, const int32 QuantityToDrop)
+{
+	if (PlayerInventory->FindMatchingItem(ItemToDrop))
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.bNoFail = true;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		const FVector SpawnLocation{GetActorLocation() + (GetActorForwardVector() * 50.f)};
+
+		const FTransform SpawnTransform(GetActorRotation(), SpawnLocation);
+
+		const int32 RemovedQuantity = PlayerInventory->RemoveAmountOfItem(ItemToDrop, QuantityToDrop);
+
+		APickup* Pickup = GetWorld()->SpawnActor<APickup>(APickup::StaticClass(), SpawnTransform, SpawnParams);
+
+		Pickup->InitializeDrop(ItemToDrop, RemovedQuantity);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Item to drop was somehow null!"));
 	}
 }
 
