@@ -132,7 +132,7 @@ void AAetherworksCharacter::PerformInteractionCheck()
 
 	if (LookDirection > 0)
 	{
-		DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 1.f);
+		//DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 1.f);
 	
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(this);

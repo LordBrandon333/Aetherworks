@@ -9,6 +9,7 @@
 #include "Items/ItemBase.h"
 #include "Player/AetherworksCharacter.h"
 #include "UserInterface/Inventory/InventoryItemSlot.h"
+#include "UserInterface/Inventory/ItemDragDropOperation.h"
 
 void UInventoryPanel::NativeOnInitialized()
 {
@@ -29,7 +30,17 @@ void UInventoryPanel::NativeOnInitialized()
 bool UInventoryPanel::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
 	UDragDropOperation* InOperation)
 {
-	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+	const UItemDragDropOperation* ItemDragDrop = Cast<UItemDragDropOperation>(InOperation);
+
+	if (ItemDragDrop->SourceItem && InventoryReference)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Detected an item drop on InventoryPanel."));
+
+		// returning true will stop the drop operation at this widget
+		return true;
+	}
+	// returning false will cause the drop operation to fall through to underlying widgets (if any)
+	return false;
 }
 
 void UInventoryPanel::RefreshInventory()

@@ -130,9 +130,96 @@ FItemAddResult UInventoryComponent::HandleNonStackableItems(UItemBase* InputItem
 			FText::FromString("Successfully added a single {0} to the inventory."), InputItem->ItemTextData.Name));
 }
 
-int32 UInventoryComponent::HandleStackableItems(UItemBase* InputItem, int32 RequestedAmount)
+int32 UInventoryComponent::HandleStackableItems(UItemBase* InputItem, int32 RequestedAddAmount)
 {
-	return 0;
+	if (RequestedAddAmount <= 0 || FMath::IsNearlyZero(InputItem->GetItemStackWeight())) return 0;
+
+	int32 AmountToDistribute = RequestedAddAmount;
+
+	// check if the item already exist in the inventory and is not a full stack
+	UItemBase* ExistingItemStack = FindNextPartialStack(InputItem);
+
+	// distribute item stack over existing stacks
+	while (ExistingItemStack)
+	{
+		// calculate how many of the existing item would be needed to make the next full stack
+		const int32 AmountToMakeFullStack = CalculateNumberForFullStack(ExistingItemStack, AmountToDistribute);
+		// calculate how many of the AmountToMakeFullStack can actually be carried (delete if player should be able to pickup more than max weight capacity)
+		const int32 WeightLimitAddAmount = CalculateWeightAddAmount(ExistingItemStack, AmountToMakeFullStack);
+
+		// as long as the remaining amount of the item does not overflow the weight capacity
+		if (WeightLimitAddAmount > 0)
+		{
+			// adjust the existing items stack quantity and inventory total weight
+			ExistingItemStack->SetQuantity(ExistingItemStack->Quantity + WeightLimitAddAmount);
+			InventoryTotalWeight += ExistingItemStack->GetItemSingleWeight() * WeightLimitAddAmount;
+
+			// adjust the count to be distributed
+			AmountToDistribute -= WeightLimitAddAmount;
+
+			InputItem->SetQuantity(AmountToDistribute);
+
+			// TODO: Refine this logic since going over weight capactiy should not ever be possible (original) or add effect (mine)
+			// if max weight capacity is reached, no need to run the loop again
+			if (InventoryTotalWeight >= InventoryWeightCapacity)
+			{
+				OnInventoryUpdated.Broadcast();
+				return RequestedAddAmount - AmountToDistribute;
+			}
+		}
+		else if (WeightLimitAddAmount <= 0)
+		{
+			if (AmountToDistribute != RequestedAddAmount)
+			{
+				// this block will be reached if distributing an item across multiple stacks
+				// and the weight limit is hit during that process
+				OnInventoryUpdated.Broadcast();
+				return RequestedAddAmount - AmountToDistribute;
+			}
+
+			return 0;
+		}
+
+		if (AmountToDistribute <= 0)
+		{
+			// all the input item was distributed across existing stacks
+			OnInventoryUpdated.Broadcast();
+			return RequestedAddAmount;
+		}
+
+		// check if there is another valid partial stack of the input item
+		ExistingItemStack = FindNextPartialStack(InputItem);
+	}
+
+	// no more partial stacks found, check if a new stack can be added
+	if (InventoryContents.Num() + 1 <= InventorySlotsCapacity)
+	{
+		// attempt to add as many form the remaining item quantity that can fit inventory weight capacity
+		const int32 WeightLimitAddAmount = CalculateWeightAddAmount(InputItem, AmountToDistribute);
+
+		if (WeightLimitAddAmount > 0)
+		{
+			// if there is still more item to distribute, but weight limit has been reached
+			if (WeightLimitAddAmount < AmountToDistribute)
+			{
+				// adjust the input item and add a new stack with as many as can be held
+				AmountToDistribute -= WeightLimitAddAmount;
+				InputItem->SetQuantity(AmountToDistribute);
+
+				// create a copy since only a partial stack can be added (copy so new item in inventory does NOT
+				// share pointer with still existing pickup item in world)
+				AddNewItem(InputItem->CreateItemCopy(), WeightLimitAddAmount);
+				return RequestedAddAmount - AmountToDistribute;
+			}
+
+			// otherwise the full remainder of the stack can be added
+			AddNewItem(InputItem, AmountToDistribute);
+			return RequestedAddAmount;
+		}
+	}
+
+	OnInventoryUpdated.Broadcast();
+	return RequestedAddAmount - AmountToDistribute;
 }
 
 FItemAddResult UInventoryComponent::HandleAddItem(UItemBase* InputItem)
