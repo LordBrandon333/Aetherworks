@@ -24,10 +24,8 @@ public:
 	UFUNCTION(Category = "Container | Inventory") FORCEINLINE void SetWeightCapacity(const float NewWeightCapacity) { InventoryWeightCapacity = NewWeightCapacity; }
 
 	// WICHTIG: Gesamtzahl der Slots = InventorySlots + Hotbar + Equipment
-	virtual int32 GetSlotsCapacity() const override
-	{
-		return ContainerSlotsCapacity + HotbarSlotCapacity + EquipmentSlotCapacity;
-	}
+	virtual int32 GetTotalSlotsCapacity() const override { return ContainerSlotsCapacity + HotbarSlotCapacity + EquipmentSlotCapacity; }
+	virtual int32 GetAmountOfUsedSlotsInContainer() override;
 
 	// Bereichs-Helper (Indizes)
 	FORCEINLINE int32 GetInventoryStart()  const { return 0; }
@@ -37,7 +35,7 @@ public:
 	FORCEINLINE int32 GetHotbarEnd()       const { return ContainerSlotsCapacity + HotbarSlotCapacity; }
 
 	FORCEINLINE int32 GetEquipmentStart()  const { return ContainerSlotsCapacity + HotbarSlotCapacity; }
-	FORCEINLINE int32 GetEquipmentEnd()    const { return GetSlotsCapacity(); }
+	FORCEINLINE int32 GetEquipmentEnd()    const { return GetTotalSlotsCapacity(); }
 
 	// Freien Slot im jeweiligen Bereich suchen
 	int32 FindFirstFreeInventorySlot() { return FindFirstFreeSlotIndexInRange(GetInventoryStart(), GetInventoryEnd()); }

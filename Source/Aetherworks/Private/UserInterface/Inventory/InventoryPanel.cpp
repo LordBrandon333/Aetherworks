@@ -109,7 +109,7 @@ void UInventoryPanel::RefreshInventory()
 void UInventoryPanel::SetInfoText() const
 {
 	const FString WeightInfoValue {FString::SanitizeFloat(InventoryReference->GetInventoryTotalWeight()) + "/" + FString::SanitizeFloat(InventoryReference->GetWeightCapacity())};
-	const FString CapacityInfoValue {FString::FromInt(InventoryReference->GetInventoryContents().Num()) + "/" + FString::FromInt(InventoryReference->GetInventoryEnd())};
+	const FString CapacityInfoValue {FString::FromInt(InventoryReference->GetAmountOfUsedSlotsInContainer()) + "/" + FString::FromInt(InventoryReference->GetInventoryEnd())};
 	
 	WeightInfo->SetText(FText::FromString(WeightInfoValue));
 	CapacityInfo->SetText(FText::FromString(CapacityInfoValue));

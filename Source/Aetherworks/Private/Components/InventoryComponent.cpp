@@ -7,6 +7,18 @@ int32 UInventoryComponent::CalculateWeightAddAmount(UItemBase* ItemIn, int32 Req
 	return (WeightMaxAddAmount >= RequestedAmount) ? RequestedAmount : WeightMaxAddAmount;
 }
 
+int32 UInventoryComponent::GetAmountOfUsedSlotsInContainer()
+{
+	int32 ItemAmount = 0;
+
+	for (const UItemBase* Item : ContainerContents)
+	{
+		if (Item->InventorySlotIndex >= GetInventoryStart() && Item->InventorySlotIndex < GetInventoryEnd()) ++ItemAmount;
+	}
+
+	return ItemAmount;
+}
+
 int32 UInventoryComponent::RemoveAmountOfItem(UItemBase* ItemIn, int32 DesiredAmountToRemove)
 {
 	const int32 ActualAmountToRemove = FMath::Min(DesiredAmountToRemove, ItemIn->Quantity);
@@ -31,7 +43,7 @@ FItemAddResult UInventoryComponent::HandleNonStackableItems(UItemBase* InputItem
 	}
 
 	// Slots voll? (Gesamt)
-	if (ContainerContents.Num() + 1 > GetSlotsCapacity())
+	if (ContainerContents.Num() + 1 > GetTotalSlotsCapacity())
 	{
 		return FItemAddResult::AddedNone(FText::Format(
 			FText::FromString("Could not add {0}. All slots are full."), InputItem->ItemTextData.Name));
@@ -92,7 +104,7 @@ int32 UInventoryComponent::HandleStackableItems(UItemBase* InputItem, int32 Requ
 	if (AmountToDistribute > 0)
 	{
 		// Gesamt-Slots voll?
-		if (ContainerContents.Num() + 1 > GetSlotsCapacity())
+		if (ContainerContents.Num() + 1 > GetTotalSlotsCapacity())
 		{
 			OnContainerUpdated.Broadcast();
 			return RequestedAddAmount - AmountToDistribute;

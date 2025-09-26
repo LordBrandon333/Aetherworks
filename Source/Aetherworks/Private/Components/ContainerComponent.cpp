@@ -6,6 +6,18 @@ UContainerComponent::UContainerComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+int32 UContainerComponent::GetAmountOfUsedSlotsInContainer()
+{
+	int32 ItemAmount = 0;
+
+	for (const UItemBase* Item : ContainerContents)
+	{
+		if (Item->InventorySlotIndex >= 0 && Item->InventorySlotIndex < ContainerSlotsCapacity) ++ItemAmount;
+	}
+
+	return ItemAmount;
+}
+
 void UContainerComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -55,7 +67,7 @@ int32 UContainerComponent::FindFirstFreeSlotIndexInRange(int32 StartIndexInclusi
 	int32 IndexToReturn = INDEX_NONE;
 
 	StartIndexInclusive = FMath::Max(0, StartIndexInclusive);
-	EndIndexExclusive   = FMath::Min(GetSlotsCapacity(), EndIndexExclusive);
+	EndIndexExclusive   = FMath::Min(GetTotalSlotsCapacity(), EndIndexExclusive);
 
 	for (int32 IndexToTest = StartIndexInclusive; IndexToTest < EndIndexExclusive; ++IndexToTest)
 	{
@@ -81,7 +93,7 @@ int32 UContainerComponent::FindFirstFreeSlotIndexInRange(int32 StartIndexInclusi
 int32 UContainerComponent::FindFirstFreeSlotIndex()
 {
 	// Standard: gesamter Bereich
-	return FindFirstFreeSlotIndexInRange(0, GetSlotsCapacity());
+	return FindFirstFreeSlotIndexInRange(0, GetTotalSlotsCapacity());
 }
 
 void UContainerComponent::RemoveSingleInstanceOfItem(UItemBase* ItemToRemove)
@@ -100,7 +112,7 @@ int32 UContainerComponent::RemoveAmountOfItem(UItemBase* ItemIn, int32 DesiredAm
 
 void UContainerComponent::SplitExistingStack(UItemBase* ItemIn, const int32 AmountToSplit)
 {
-	if (!(ContainerContents.Num() + 1 > GetSlotsCapacity()))
+	if (!(ContainerContents.Num() + 1 > GetTotalSlotsCapacity()))
 	{
 		RemoveAmountOfItem(ItemIn, AmountToSplit);
 		AddNewItem(ItemIn, AmountToSplit);
@@ -142,7 +154,7 @@ void UContainerComponent::TryMoveOrSwapOrMerge(UItemBase* ItemToTry, UItemBase* 
 FItemAddResult UContainerComponent::HandleNonStackableItems(UItemBase* InputItem)
 {
 	// Slots voll?
-	if (ContainerContents.Num() + 1 > GetSlotsCapacity())
+	if (ContainerContents.Num() + 1 > GetTotalSlotsCapacity())
 	{
 		return FItemAddResult::AddedNone(FText::Format(
 			FText::FromString("Could not add {0}. All slots are full."), InputItem->ItemTextData.Name));
@@ -187,7 +199,7 @@ int32 UContainerComponent::HandleStackableItems(UItemBase* InputItem, int32 Requ
 	// 2) Rest in EINEN neuen Slot (falls frei)
 	if (AmountToDistribute > 0)
 	{
-		if (ContainerContents.Num() + 1 <= GetSlotsCapacity())
+		if (ContainerContents.Num() + 1 <= GetTotalSlotsCapacity())
 		{
 			const int32 ToPlace = InputItem->ItemNumericData.bIsStackable
 				? FMath::Min(AmountToDistribute, InputItem->ItemNumericData.MaxStackSize)
