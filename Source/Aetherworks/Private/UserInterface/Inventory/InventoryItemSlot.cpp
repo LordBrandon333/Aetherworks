@@ -17,50 +17,12 @@ void UInventoryItemSlot::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	/*
 	if (TooltipClass)
 	{
-		UInventoryTooltip* Tooltip = CreateWidget<UInventoryTooltip>(this, TooltipClass);
-		Tooltip->InventorySlotBeingHovered = this;
-		SetToolTip(Tooltip);
-	}*/
-}
-
-void UInventoryItemSlot::NativeConstruct()
-{
-	Super::NativeConstruct();
-	/*
-	if (ItemReference)
-	{
-		switch (ItemReference->ItemQuality) {
-		case EItemQuality::Shoddy:
-			ItemBorder->SetBrushColor(FLinearColor(0.82f, 0.7f, 0.54f, 1.f));
-			break;
-		case EItemQuality::Common:
-			ItemBorder->SetBrushColor(FLinearColor::White);
-			break;
-		case EItemQuality::Quality:
-			ItemBorder->SetBrushColor(FLinearColor(0.f, 0.51f, 0.169f, 1.f));
-			break;
-		case EItemQuality::Masterwork:
-			ItemBorder->SetBrushColor(FLinearColor(0.f, 0.4f, 0.75f, 1.f));
-			break;
-		case EItemQuality::Grandmaster:
-			ItemBorder->SetBrushColor(FLinearColor(1.f, 0.45f, 0.f, 1.0f)); // orange color
-			break;
-		}
-
-		ItemIcon->SetBrushFromTexture(ItemReference->ItemAssetData.Icon);
-
-		if (ItemReference->ItemNumericData.bIsStackable)
-		{
-			ItemQuantity->SetText(FText::AsNumber(ItemReference->Quantity));
-		}
-		else
-		{
-			ItemQuantity->SetVisibility(ESlateVisibility::Collapsed);
-		}
-	}*/
+		InventoryTooltip = CreateWidget<UInventoryTooltip>(this, TooltipClass);
+		InventoryTooltip->InventorySlotBeingHovered = this;
+		SetToolTip(InventoryTooltip);
+	}
 }
 
 FReply UInventoryItemSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -125,13 +87,16 @@ bool UInventoryItemSlot::NativeOnDrop(const FGeometry& InGeometry, const FDragDr
 	return false;
 }
 
-void UInventoryItemSlot::InitializeAsEmptyInventorySlot(UInventoryComponent* InInventory, int32 IndexIn)
+void UInventoryItemSlot::InitializeAsEmptyInventorySlot(UInventoryComponent* InInventory, int32 InIndex)
 {
-	ItemBorder->SetBrushColor(FLinearColor::Gray);
-	ItemIcon->SetVisibility(ESlateVisibility::Collapsed);
-	ItemQuantity->SetVisibility(ESlateVisibility::Collapsed);
-	SlotIndex = IndexIn;
-	InventoryReference = InInventory;
+	if (InInventory && InInventory->CheckIfIndexIsValid(InIndex))
+	{
+		ItemBorder->SetBrushColor(FLinearColor::Gray);
+		ItemIcon->SetVisibility(ESlateVisibility::Collapsed);
+		ItemQuantity->SetVisibility(ESlateVisibility::Collapsed);
+		SlotIndex = InIndex;
+		InventoryReference = InInventory;
+	}
 }
 
 void UInventoryItemSlot::InitializeVisualization(UItemBase* ItemIn)
@@ -171,10 +136,14 @@ void UInventoryItemSlot::InitializeVisualization(UItemBase* ItemIn)
 		ItemQuantity->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
-	if (TooltipClass)
-	{
-		UInventoryTooltip* Tooltip = CreateWidget<UInventoryTooltip>(this, TooltipClass);
-		Tooltip->InventorySlotBeingHovered = this;
-		SetToolTip(Tooltip);
-	}
+	if (InventoryTooltip) InventoryTooltip->SetTooltipText(ItemReference);
+}
+
+void UInventoryItemSlot::ResetToEmptySlot()
+{
+	ItemBorder->SetBrushColor(FLinearColor::Gray);
+	ItemIcon->SetVisibility(ESlateVisibility::Collapsed);
+	ItemQuantity->SetVisibility(ESlateVisibility::Collapsed);
+	ItemReference = nullptr;
+	InventoryTooltip->ClearTooltipText();
 }

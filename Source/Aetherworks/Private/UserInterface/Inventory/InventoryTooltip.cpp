@@ -11,6 +11,7 @@ void UInventoryTooltip::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	/*
 	const UItemBase* ItemBeingHovered = InventorySlotBeingHovered->GetItemReference();
 
 	switch (ItemBeingHovered->ItemType) {
@@ -54,5 +55,73 @@ void UInventoryTooltip::NativeConstruct()
 	else
 	{
 		MaxStackSize->SetVisibility(ESlateVisibility::Collapsed);
+	}*/
+}
+
+void UInventoryTooltip::SetTooltipText(const UItemBase* InItem)
+{
+	if (!InItem) return;
+
+	SetTooltipVariablesToVisibilityState(ESlateVisibility::Visible);
+	
+	switch (InItem->ItemType) {
+	case EItemType::Armor:
+		break;
+	case EItemType::Weapon:
+		break;
+	case EItemType::Shield:
+		break;
+	case EItemType::Spell:
+		break;
+	case EItemType::Consumable:
+		ItemType->SetText(FText::FromString("Consumable"));
+		DamageValue->SetVisibility(ESlateVisibility::Collapsed);
+		ArmorRating->SetVisibility(ESlateVisibility::Collapsed);
+		break;
+	case EItemType::Quest:
+		break;
+	case EItemType::Mundane:
+		ItemType->SetText(FText::FromString("Mundane Item"));
+		DamageValue->SetVisibility(ESlateVisibility::Collapsed);
+		ArmorRating->SetVisibility(ESlateVisibility::Collapsed);
+		UsageText->SetVisibility(ESlateVisibility::Collapsed);
+		break;
 	}
+
+	ItemName->SetText(InItem->ItemTextData.Name);
+	DamageValue->SetText(FText::AsNumber(InItem->ItemStatistics.DamageValue));
+	ArmorRating->SetText(FText::AsNumber(InItem->ItemStatistics.ArmorRating));
+	UsageText->SetText(InItem->ItemTextData.UsageText);
+	ItemDescription->SetText(InItem->ItemTextData.Description);
+
+	const FString WeightInfo = {"Weight: " + FString::SanitizeFloat(InItem->GetItemStackWeight())};
+	StackWeight->SetText(FText::FromString(WeightInfo));
+
+	if (InItem->ItemNumericData.bIsStackable)
+	{
+		const FString StackInfo = {"Max Stack Size: " + FString::FromInt(InItem->ItemNumericData.MaxStackSize)};
+		MaxStackSize->SetText(FText::FromString(StackInfo));
+	}
+	else
+	{
+		MaxStackSize->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void UInventoryTooltip::ClearTooltipText()
+{
+	SetTooltipVariablesToVisibilityState(ESlateVisibility::Collapsed);
+}
+
+void UInventoryTooltip::SetTooltipVariablesToVisibilityState(ESlateVisibility TargetState)
+{
+	SetVisibility(TargetState);
+	ItemName->SetVisibility(TargetState);
+	ItemType->SetVisibility(TargetState);
+	DamageValue->SetVisibility(TargetState);
+	ArmorRating->SetVisibility(TargetState);
+	UsageText->SetVisibility(TargetState);
+	ItemDescription->SetVisibility(TargetState);
+	StackWeight->SetVisibility(TargetState);
+	MaxStackSize->SetVisibility(TargetState);
 }

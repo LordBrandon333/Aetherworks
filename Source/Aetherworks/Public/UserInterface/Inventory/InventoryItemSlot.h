@@ -28,13 +28,14 @@ public:
 	FORCEINLINE void SetItemReference(UItemBase* ItemIn) { ItemReference = ItemIn; }
 	FORCEINLINE UItemBase* GetItemReference() const { return ItemReference; }
 
-	void InitializeAsEmptyInventorySlot(UInventoryComponent* InInventory, int32 IndexIn);
+	void InitializeAsEmptyInventorySlot(UInventoryComponent* InInventory, int32 InIndex);
 	void InitializeVisualization(UItemBase* ItemIn);
+	void ResetToEmptySlot();
 
 protected:
 	
 	virtual void NativeOnInitialized() override;
-	virtual void NativeConstruct() override;
+	// virtual void NativeConstruct() override;
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
@@ -68,4 +69,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Inventory | Slot");
 	UInventoryComponent* InventoryReference;
+
+	UInventoryTooltip* InventoryTooltip = nullptr;
 };

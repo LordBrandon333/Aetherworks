@@ -43,31 +43,65 @@ bool UInventoryPanel::NativeOnDrop(const FGeometry& InGeometry, const FDragDropE
 	return false;
 }
 
+void UInventoryPanel::BuildSlotsIfNeeded()
+{
+	if (!InventoryReference || !InventoryWrapBox || !InventorySlotClass) return;
+
+	const int32 Capacity = InventoryReference->GetSlotsCapacity();
+	if (Capacity == CachedCapacity && InventorySlots.Num() == Capacity && InventoryWrapBox->GetChildrenCount() == Capacity)
+	{
+		// all slots are already build
+		return;
+	}
+
+	CachedCapacity = Capacity;
+	InventorySlots.Reset(Capacity);
+	InventoryWrapBox->ClearChildren();
+	InventorySlots.Reserve(Capacity);
+
+	for (int32 i = 0; i < Capacity; ++i)
+	{
+		UInventoryItemSlot* ItemSlot = CreateWidget<UInventoryItemSlot>(this, InventorySlotClass);
+		ItemSlot->InitializeAsEmptyInventorySlot(InventoryReference, i);
+		InventorySlots.Add(ItemSlot);
+		InventoryWrapBox->AddChild(ItemSlot);
+	}
+}
+
+void UInventoryPanel::ClearSlotVisuals()
+{
+	for (UInventoryItemSlot* InvSlot : InventorySlots)
+	{
+		InvSlot->ResetToEmptySlot();
+	}
+}
+
+void UInventoryPanel::FillSlotVisuals()
+{
+	const TArray<UItemBase*>& Items = InventoryReference->GetInventoryContents();
+
+	for (UItemBase* Item : Items)
+	{
+		if (!Item) continue;
+
+		const int32 Idx = Item->InventorySlotIndex;
+		if (!CheckIfIndexIsValid(Idx)) continue;
+
+		InventorySlots[Idx]->InitializeVisualization(Item);
+	}
+}
+
 void UInventoryPanel::RefreshInventory()
 {
 	if (InventoryReference && InventorySlotClass)
 	{
-		InventoryWrapBox->ClearChildren();
-
-		TArray<UInventoryItemSlot*> AllSlots;
-
-		for (int32 i = 0; i < InventoryReference->GetSlotsCapacity(); ++i)
-		{
-			UInventoryItemSlot* ItemSlot = CreateWidget<UInventoryItemSlot>(this, InventorySlotClass);
-			ItemSlot->InitializeAsEmptyInventorySlot(InventoryReference, i);
-			AllSlots.Add(ItemSlot);
-		}
-		
-		for (UItemBase* const& InventoryItem : InventoryReference->GetInventoryContents())
-		{
-			AllSlots[InventoryItem->InventorySlotIndex]->InitializeVisualization(InventoryItem);
-		}
-
-		for (UInventoryItemSlot* InventorySlot : AllSlots)
-		{
-			InventoryWrapBox->AddChildToWrapBox(InventorySlot);
-		}
-		
+		// Only (re)builds Slots if necessary, like Init or SlotCapacity resize
+		BuildSlotsIfNeeded();
+		// Resets every existing SlotWidget to empty version
+		ClearSlotVisuals();
+		// Fills the necessary slots with info of items in the inventory
+		FillSlotVisuals();
+		// Sets weight & capacity info
 		SetInfoText();
 	}
 }

@@ -8,6 +8,7 @@
 
 class UTextBlock;
 class UInventoryItemSlot;
+class UItemBase;
 /**
  * 
  */
@@ -19,9 +20,16 @@ class AETHERWORKS_API UInventoryTooltip : public UUserWidget
 	//============================================================================================================
 	//	FUNCTIONS
 	//============================================================================================================
+public:
+
+	void SetTooltipText(const UItemBase* InItem);
+	void ClearTooltipText();
+	
 protected:
 	
 	virtual void NativeConstruct() override;
+
+	void SetTooltipVariablesToVisibilityState(ESlateVisibility TargetState);
 
 	//============================================================================================================
 	//	PROPERTIES & VARIABLES

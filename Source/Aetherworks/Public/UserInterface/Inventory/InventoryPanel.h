@@ -32,6 +32,11 @@ protected:
 	virtual void NativeOnInitialized() override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 
+	UFUNCTION(Category = "Inventory") FORCEINLINE bool CheckIfIndexIsValid(const int32 Index) const { return Index >= 0 && Index < CachedCapacity; }
+
+	void BuildSlotsIfNeeded();
+	void ClearSlotVisuals();
+	void FillSlotVisuals();
 	void SetInfoText() const;
 	
 	//============================================================================================================
@@ -40,13 +45,13 @@ protected:
 public:
 
 	UPROPERTY(meta = (BindWidget))
-	UWrapBox* InventoryWrapBox;
+	UWrapBox* InventoryWrapBox = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* WeightInfo;
+	UTextBlock* WeightInfo = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* CapacityInfo;
+	UTextBlock* CapacityInfo = nullptr;
 
 	UPROPERTY()
 	AAetherworksCharacter* PlayerCharacter;
@@ -56,4 +61,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UInventoryItemSlot> InventorySlotClass;
+
+	UPROPERTY()
+	TArray<UInventoryItemSlot*> InventorySlots;
+
+	UPROPERTY()
+	int32 CachedCapacity = -1;
 };

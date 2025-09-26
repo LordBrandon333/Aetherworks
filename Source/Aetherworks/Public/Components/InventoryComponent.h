@@ -87,6 +87,7 @@ public:
 	UFUNCTION(Category = "Inventory") FORCEINLINE float GetWeightCapacity() const {return InventoryWeightCapacity; };
 	UFUNCTION(Category = "Inventory") FORCEINLINE int32 GetSlotsCapacity() const {return InventorySlotsCapacity; };
 	UFUNCTION(Category = "Inventory") FORCEINLINE TArray<UItemBase*> GetInventoryContents() const { return InventoryContents; };
+	UFUNCTION(Category = "Inventory") FORCEINLINE bool CheckIfIndexIsValid(const int32 Index) const { return Index >= 0 && Index < InventorySlotsCapacity; }
 
 	//=== Setters ===
 	UFUNCTION(Category = "Inventory") FORCEINLINE void SetSlotsCapacity(const int32 NewSlotsCapacity) { InventorySlotsCapacity = NewSlotsCapacity; };
@@ -112,7 +113,7 @@ protected:
 	int32 CalculateNumberForFullStack(UItemBase* StackableItem, int32 InitialRequestAddAmount);
 
 	int32 FindFirstFreeSlotIndex();
-	bool CheckIfIndexIsValid(const int32 Index) const { return Index >= 0 && Index < InventorySlotsCapacity; }
+	
 	
 	void AddNewItem(UItemBase* Item, const int32 AmountToAdd = 1);
 
