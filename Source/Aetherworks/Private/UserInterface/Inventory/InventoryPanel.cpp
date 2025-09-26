@@ -78,7 +78,7 @@ void UInventoryPanel::ClearSlotVisuals()
 
 void UInventoryPanel::FillSlotVisuals()
 {
-	const TArray<UItemBase*>& Items = InventoryReference->GetInventoryContents();
+	const TArray<UItemBase*>& Items = InventoryReference->GetContainerRegionContents(EContainerRegion::Inventory);
 
 	for (UItemBase* Item : Items)
 	{

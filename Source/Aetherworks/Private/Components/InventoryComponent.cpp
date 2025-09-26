@@ -181,3 +181,35 @@ void UInventoryComponent::AddNewItem(UItemBase* Item, const int32 AmountToAdd)
 	InventoryTotalWeight += NewItem->GetItemStackWeight();
 	OnContainerUpdated.Broadcast();
 }
+
+TArray<UItemBase*> UInventoryComponent::GetContainerRegionContents(const EContainerRegion RequestedRegion)
+{
+	TArray<UItemBase*> OutArray;
+
+	int32 RegionStartIndex = 0;
+	int32 RegionEndIndex = 0;
+
+	switch (RequestedRegion) {
+	case EContainerRegion::Inventory:
+		RegionStartIndex = GetInventoryStart();
+		RegionEndIndex = GetInventoryEnd();
+		break;
+		
+	case EContainerRegion::Hotbar:
+		RegionStartIndex = GetHotbarStart();
+		RegionEndIndex = GetHotbarEnd();
+		break;
+		
+	case EContainerRegion::Equipment:
+		RegionStartIndex = GetEquipmentStart();
+		RegionEndIndex = GetEquipmentEnd();
+		break;
+	}
+
+	for (UItemBase* Item : ContainerContents)
+	{
+		if (Item->InventorySlotIndex >= RegionStartIndex && Item->InventorySlotIndex < RegionEndIndex) OutArray.Add(Item);
+	}
+	
+	return OutArray;
+}

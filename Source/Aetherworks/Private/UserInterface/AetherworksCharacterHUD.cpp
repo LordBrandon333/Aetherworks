@@ -4,6 +4,7 @@
 #include "UserInterface/AetherworksCharacterHUD.h"
 #include "UserInterface/MainMenu.h"
 #include "UserInterface/Interaction/InteractionWidget.h"
+#include "UserInterface/Inventory/HotbarPanel.h"
 
 AAetherworksCharacterHUD::AAetherworksCharacterHUD()
 {
@@ -32,6 +33,13 @@ void AAetherworksCharacterHUD::BeginPlay()
 		CrosshairWidget = CreateWidget<UUserWidget>(GetWorld(), CrosshairWidgetClass);
 		CrosshairWidget->AddToViewport();
 		CrosshairWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	if (HotbarPanelClass)
+	{
+		HotbarWidget = CreateWidget<UHotbarPanel>(GetWorld(), HotbarPanelClass);
+		HotbarWidget->AddToViewport(4);
+		HotbarWidget->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 

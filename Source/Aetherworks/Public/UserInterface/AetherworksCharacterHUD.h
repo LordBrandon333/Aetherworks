@@ -6,6 +6,7 @@
 #include "GameFramework/HUD.h"
 #include "AetherworksCharacterHUD.generated.h"
 
+class UHotbarPanel;
 struct FInteractableData;
 class UInteractionWidget;
 class UMainMenu;
@@ -51,17 +52,23 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
 	TSubclassOf<UUserWidget> CrosshairWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
+	TSubclassOf<UHotbarPanel> HotbarPanelClass;
+
 	bool bIsMenuVisible = false;
 
 protected:
 	
 	UPROPERTY()
-	UMainMenu* MainMenuWidget;
+	UMainMenu* MainMenuWidget = nullptr;
 
 	UPROPERTY()
-	UInteractionWidget* InteractionWidget;
+	UInteractionWidget* InteractionWidget = nullptr;
 
 	UPROPERTY()
-	UUserWidget* CrosshairWidget;
+	UUserWidget* CrosshairWidget = nullptr;
+
+	UPROPERTY()
+	UHotbarPanel* HotbarWidget = nullptr;
 	
 };

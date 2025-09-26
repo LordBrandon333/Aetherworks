@@ -29,6 +29,11 @@ FReply UInventoryItemSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, 
 {
 	FReply Reply = Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 
+	GEngine->AddOnScreenDebugMessage(
+		-1, 5.f, FColor::Green,
+		FString::Printf(TEXT("SlotIndex: %d"), SlotIndex)
+	);
+
 	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
 		return Reply.Handled().DetectDrag(TakeWidget(), EKeys::LeftMouseButton);

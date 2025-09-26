@@ -42,6 +42,8 @@ public:
 	int32 FindFirstFreeHotbarSlot()    { return FindFirstFreeSlotIndexInRange(GetHotbarStart(), GetHotbarEnd()); }
 	int32 FindFirstFreeEquipSlot()     { return FindFirstFreeSlotIndexInRange(GetEquipmentStart(), GetEquipmentEnd()); }
 
+	TArray<UItemBase*> GetContainerRegionContents(const EContainerRegion RequestedRegion);
+
 	// Override Remove-Amount (Gewicht)
 	virtual int32 RemoveAmountOfItem(UItemBase* ItemIn, int32 DesiredAmountToRemove) override;
 

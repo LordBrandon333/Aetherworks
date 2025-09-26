@@ -75,7 +75,7 @@ public:
 	//=== Getters ===
 	// WICHTIG: virtuell gemacht, damit InventoryComponent die Gesamt-Kapazität (Inv+Hotbar+Equip) zurückgeben kann
 	UFUNCTION(Category = "Container") virtual int32 GetTotalSlotsCapacity() const { return ContainerSlotsCapacity; };
-	UFUNCTION(Category = "Container") FORCEINLINE TArray<UItemBase*> GetInventoryContents() const { return ContainerContents; };
+	UFUNCTION(Category = "Container") FORCEINLINE TArray<UItemBase*> GetContainerContents() const { return ContainerContents; };
 	UFUNCTION(Category = "Container") FORCEINLINE bool CheckIfIndexIsValid(const int32 Index) const { return Index >= 0 && Index < GetTotalSlotsCapacity(); }
 	UFUNCTION(Category = "Container") virtual int32 GetAmountOfUsedSlotsInContainer();
 
