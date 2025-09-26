@@ -9,7 +9,7 @@
 #include "Components/TextBlock.h"
 #include "Items/ItemBase.h"
 #include "UserInterface/Inventory/DragItemVisual.h"
-#include "UserInterface/Inventory/InventoryTooltip.h"
+#include "UserInterface/Inventory/ItemToolTip.h"
 #include "UserInterface/Inventory/ItemDragDropOperation.h"
 #include "Engine/Engine.h"
 
@@ -17,11 +17,11 @@ void UInventoryItemSlot::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	if (TooltipClass)
+	if (ToolTipClass)
 	{
-		InventoryTooltip = CreateWidget<UInventoryTooltip>(this, TooltipClass);
-		InventoryTooltip->InventorySlotBeingHovered = this;
-		SetToolTip(InventoryTooltip);
+		SlotToolTip = CreateWidget<UItemToolTip>(this, ToolTipClass);
+		SlotToolTip->InventorySlotBeingHovered = this;
+		SetToolTip(SlotToolTip);
 	}
 }
 
@@ -136,7 +136,7 @@ void UInventoryItemSlot::InitializeVisualization(UItemBase* ItemIn)
 		ItemQuantity->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
-	if (InventoryTooltip) InventoryTooltip->SetTooltipText(ItemReference);
+	if (SlotToolTip) SlotToolTip->SetItemToolTipText(ItemReference);
 }
 
 void UInventoryItemSlot::ResetToEmptySlot()
@@ -145,5 +145,5 @@ void UInventoryItemSlot::ResetToEmptySlot()
 	ItemIcon->SetVisibility(ESlateVisibility::Collapsed);
 	ItemQuantity->SetVisibility(ESlateVisibility::Collapsed);
 	ItemReference = nullptr;
-	InventoryTooltip->ClearTooltipText();
+	SlotToolTip->ClearItemToolTipText();
 }

@@ -4,16 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "InventoryTooltip.generated.h"
+#include "ItemToolTip.generated.h"
 
 class UTextBlock;
 class UInventoryItemSlot;
 class UItemBase;
-/**
- * 
- */
+
+
 UCLASS()
-class AETHERWORKS_API UInventoryTooltip : public UUserWidget
+class AETHERWORKS_API UItemToolTip : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -22,14 +21,14 @@ class AETHERWORKS_API UInventoryTooltip : public UUserWidget
 	//============================================================================================================
 public:
 
-	void SetTooltipText(const UItemBase* InItem);
-	void ClearTooltipText();
+	void SetItemToolTipText(const UItemBase* InItem);
+	void ClearItemToolTipText();
 	
 protected:
 	
 	virtual void NativeConstruct() override;
 
-	void SetTooltipVariablesToVisibilityState(ESlateVisibility TargetState);
+	void SetToolTipVariablesToVisibilityState(ESlateVisibility TargetState);
 
 	//============================================================================================================
 	//	PROPERTIES & VARIABLES

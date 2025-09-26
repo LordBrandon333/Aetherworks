@@ -1,13 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UserInterface/Inventory/InventoryTooltip.h"
-
+#include "UserInterface/Inventory/ItemToolTip.h"
 #include "Components/TextBlock.h"
 #include "Items/ItemBase.h"
 #include "UserInterface/Inventory/InventoryItemSlot.h"
 
-void UInventoryTooltip::NativeConstruct()
+void UItemToolTip::NativeConstruct()
 {
 	Super::NativeConstruct();
 
@@ -58,11 +57,11 @@ void UInventoryTooltip::NativeConstruct()
 	}*/
 }
 
-void UInventoryTooltip::SetTooltipText(const UItemBase* InItem)
+void UItemToolTip::SetItemToolTipText(const UItemBase* InItem)
 {
 	if (!InItem) return;
 
-	SetTooltipVariablesToVisibilityState(ESlateVisibility::Visible);
+	SetToolTipVariablesToVisibilityState(ESlateVisibility::Visible);
 	
 	switch (InItem->ItemType) {
 	case EItemType::Armor:
@@ -108,12 +107,12 @@ void UInventoryTooltip::SetTooltipText(const UItemBase* InItem)
 	}
 }
 
-void UInventoryTooltip::ClearTooltipText()
+void UItemToolTip::ClearItemToolTipText()
 {
-	SetTooltipVariablesToVisibilityState(ESlateVisibility::Collapsed);
+	SetToolTipVariablesToVisibilityState(ESlateVisibility::Collapsed);
 }
 
-void UInventoryTooltip::SetTooltipVariablesToVisibilityState(ESlateVisibility TargetState)
+void UItemToolTip::SetToolTipVariablesToVisibilityState(ESlateVisibility TargetState)
 {
 	SetVisibility(TargetState);
 	ItemName->SetVisibility(TargetState);
@@ -125,3 +124,4 @@ void UInventoryTooltip::SetTooltipVariablesToVisibilityState(ESlateVisibility Ta
 	StackWeight->SetVisibility(TargetState);
 	MaxStackSize->SetVisibility(TargetState);
 }
+

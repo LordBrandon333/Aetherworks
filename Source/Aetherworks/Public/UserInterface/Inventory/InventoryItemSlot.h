@@ -10,7 +10,7 @@ class UInventoryComponent;
 class UImage;
 class UBorder;
 class UTextBlock;
-class UInventoryTooltip;
+class UItemToolTip;
 class UDragItemVisual;
 class UItemBase;
 
@@ -50,7 +50,7 @@ protected:
 	TSubclassOf<UDragItemVisual> DragItemVisualClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory Slot")
-	TSubclassOf<UInventoryTooltip> TooltipClass;
+	TSubclassOf<UItemToolTip> ToolTipClass;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Inventory Slot")
 	UItemBase* ItemReference = nullptr;
@@ -70,5 +70,5 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Inventory | Slot");
 	UInventoryComponent* InventoryReference;
 
-	UInventoryTooltip* InventoryTooltip = nullptr;
+	UItemToolTip* SlotToolTip = nullptr;
 };
