@@ -132,22 +132,32 @@ void UInventoryComponent::TryMoveOrSwapOrMerge(UItemBase* ItemToTry, UItemBase* 
 	const int32 TargetIndex)
 {
 	if (!ItemToTry || !CheckIfIndexIsValid(TargetIndex)) return;
-	GEngine->AddOnScreenDebugMessage(
-		-1, 5.f, FColor::Green,
-		FString::Printf(TEXT("SlotIndex: %d"), TargetIndex)
-	);
 	
 	if (!CurrentItemAtIndex)
 	{
 		// no item at target index
 		ItemToTry->InventorySlotIndex = TargetIndex;
-		OnInventoryUpdated.Broadcast();
 	}
 	else
 	{
-		// item at target index -> check if same item type and if yes, can merge? else swap
-		
+		// item at target index -> check if same item type and if yes, can merge?
+		if (ItemToTry->ID == CurrentItemAtIndex->ID)
+		{
+			const int32 MaxAmountToMerge = CalculateNumberForFullStack(CurrentItemAtIndex, ItemToTry->Quantity);
+			const int32 ActualAmountToMerge = FMath::Min(ItemToTry->Quantity, MaxAmountToMerge);
+			
+			CurrentItemAtIndex->SetQuantity(CurrentItemAtIndex->Quantity + ActualAmountToMerge);
+			ItemToTry->SetQuantity(ItemToTry->Quantity - ActualAmountToMerge);
+		}
+		// else swap
+		else
+		{
+			CurrentItemAtIndex->InventorySlotIndex = ItemToTry->InventorySlotIndex;
+			ItemToTry->InventorySlotIndex = TargetIndex;
+		}
 	}
+
+	OnInventoryUpdated.Broadcast();
 }
 
 FItemAddResult UInventoryComponent::HandleNonStackableItems(UItemBase* InputItem)
