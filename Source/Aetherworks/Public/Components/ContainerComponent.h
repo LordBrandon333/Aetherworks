@@ -1,6 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
@@ -25,11 +23,8 @@ struct FItemAddResult
 
 	FItemAddResult() : ActualAmountAdded(0), OperationResult(EItemAddResult::IAR_NoItemAdded), ResultMessage(FText::GetEmpty()) {}
 
-	// Actual amount of item that was added to the inventory
 	int32 ActualAmountAdded;
-	// Enum representing the end state of an add item operation
 	EItemAddResult OperationResult;
-	// Informational message that can be passed with the result
 	FText ResultMessage;
 
 	static FItemAddResult AddedNone(const FText& ErrorText)
@@ -63,11 +58,7 @@ class AETHERWORKS_API UContainerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 	
-	//============================================================================================================
-	//	FUNCTIONS
-	//============================================================================================================
 public:
-	
 	UContainerComponent();
 
 	UFUNCTION(Category = "Container") FItemAddResult HandleAddItem(UItemBase* InputItem);
@@ -82,37 +73,36 @@ public:
 	UFUNCTION(Category = "Container") void TryMoveOrSwapOrMerge(UItemBase* ItemToTry, UItemBase* CurrentItemAtIndex, const int32 TargetIndex);
 
 	//=== Getters ===
-	UFUNCTION(Category = "Container") FORCEINLINE int32 GetSlotsCapacity() const {return ContainerSlotsCapacity; };
+	// WICHTIG: virtuell gemacht, damit InventoryComponent die Gesamt-Kapazität (Inv+Hotbar+Equip) zurückgeben kann
+	UFUNCTION(Category = "Container") virtual int32 GetSlotsCapacity() const { return ContainerSlotsCapacity; };
 	UFUNCTION(Category = "Container") FORCEINLINE TArray<UItemBase*> GetInventoryContents() const { return ContainerContents; };
-	UFUNCTION(Category = "Container") FORCEINLINE bool CheckIfIndexIsValid(const int32 Index) const { return Index >= 0 && Index < ContainerSlotsCapacity; }
+	UFUNCTION(Category = "Container") FORCEINLINE bool CheckIfIndexIsValid(const int32 Index) const { return Index >= 0 && Index < GetSlotsCapacity(); }
 
 	//=== Setters ===
 	UFUNCTION(Category = "Container") FORCEINLINE void SetSlotsCapacity(const int32 NewSlotsCapacity) { ContainerSlotsCapacity = NewSlotsCapacity; };
 
+public:
+	FOnContainerUpdated OnContainerUpdated;
 
 protected:
-	
 	virtual void BeginPlay() override;
 
 	virtual FItemAddResult HandleNonStackableItems(UItemBase* InputItem);
 	virtual int32 HandleStackableItems(UItemBase* InputItem, int32 RequestedAddAmount);
 	int32 CalculateNumberForFullStack(UItemBase* StackableItem, int32 InitialRequestAddAmount);
 
+	// Standard: sucht im gesamten [0..GetSlotsCapacity)
 	int32 FindFirstFreeSlotIndex();
-	
+
+	// Neu: sucht in einem expliziten Bereich [Start, End)
+	int32 FindFirstFreeSlotIndexInRange(int32 StartIndexInclusive, int32 EndIndexExclusive);
+
+	// Basis-AddNewItem (legt in ersten freien Slot, kann von abgeleiteten Klassen überschrieben werden)
 	virtual void AddNewItem(UItemBase* Item, const int32 AmountToAdd = 1);
 	
-	//============================================================================================================
-	//	PROPERTIES & VARIABLES
-	//============================================================================================================
-public:
-	
-	FOnContainerUpdated OnContainerUpdated;
-
 protected:
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Container")
-	int32 ContainerSlotsCapacity = 28;
+	int32 ContainerSlotsCapacity = 28; // „normales“ Inventar / Kisten-Kapazität (erste Indizes)
 
 	UPROPERTY(VisibleAnywhere, Category = "Container")
 	TArray<TObjectPtr<UItemBase>> ContainerContents;

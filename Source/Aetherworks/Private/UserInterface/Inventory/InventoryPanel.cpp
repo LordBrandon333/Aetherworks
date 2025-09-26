@@ -47,7 +47,7 @@ void UInventoryPanel::BuildSlotsIfNeeded()
 {
 	if (!InventoryReference || !InventoryWrapBox || !InventorySlotClass) return;
 
-	const int32 Capacity = InventoryReference->GetSlotsCapacity();
+	const int32 Capacity = InventoryReference->GetInventoryEnd();
 	if (Capacity == CachedCapacity && InventorySlots.Num() == Capacity && InventoryWrapBox->GetChildrenCount() == Capacity)
 	{
 		// all slots are already build
@@ -109,7 +109,7 @@ void UInventoryPanel::RefreshInventory()
 void UInventoryPanel::SetInfoText() const
 {
 	const FString WeightInfoValue {FString::SanitizeFloat(InventoryReference->GetInventoryTotalWeight()) + "/" + FString::SanitizeFloat(InventoryReference->GetWeightCapacity())};
-	const FString CapacityInfoValue {FString::FromInt(InventoryReference->GetInventoryContents().Num()) + "/" + FString::FromInt(InventoryReference->GetSlotsCapacity())};
+	const FString CapacityInfoValue {FString::FromInt(InventoryReference->GetInventoryContents().Num()) + "/" + FString::FromInt(InventoryReference->GetInventoryEnd())};
 	
 	WeightInfo->SetText(FText::FromString(WeightInfoValue));
 	CapacityInfo->SetText(FText::FromString(CapacityInfoValue));

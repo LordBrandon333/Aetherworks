@@ -1,11 +1,6 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "Components/ContainerComponent.h"
-
+﻿#include "Components/ContainerComponent.h"
 #include "Items/ItemBase.h"
 
-// Sets default values for this component's properties
 UContainerComponent::UContainerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -52,27 +47,28 @@ UItemBase* UContainerComponent::FindNextPartialStack(UItemBase* ItemIn) const
 int32 UContainerComponent::CalculateNumberForFullStack(UItemBase* StackableItem, int32 InitialRequestAddAmount)
 {
 	const int32 AddAmountToMakeFullStack = StackableItem->ItemNumericData.MaxStackSize - StackableItem->Quantity;
-
 	return FMath::Min(InitialRequestAddAmount, AddAmountToMakeFullStack);
 }
 
-int32 UContainerComponent::FindFirstFreeSlotIndex()
+int32 UContainerComponent::FindFirstFreeSlotIndexInRange(int32 StartIndexInclusive, int32 EndIndexExclusive)
 {
 	int32 IndexToReturn = INDEX_NONE;
 
-	for (int32 IndexToTest = 0; IndexToTest < GetSlotsCapacity(); ++IndexToTest)
+	StartIndexInclusive = FMath::Max(0, StartIndexInclusive);
+	EndIndexExclusive   = FMath::Min(GetSlotsCapacity(), EndIndexExclusive);
+
+	for (int32 IndexToTest = StartIndexInclusive; IndexToTest < EndIndexExclusive; ++IndexToTest)
 	{
-		bool bTestedIndexFound = false;
+		bool bOccupied = false;
 		for (const UItemBase* ItemInArray : ContainerContents)
 		{
-			if (ItemInArray->InventorySlotIndex == IndexToTest)
+			if (ItemInArray && ItemInArray->InventorySlotIndex == IndexToTest)
 			{
-				bTestedIndexFound = true;
+				bOccupied = true;
 				break;
 			}
 		}
-		
-		if (!bTestedIndexFound)
+		if (!bOccupied)
 		{
 			IndexToReturn = IndexToTest;
 			break;
@@ -80,6 +76,12 @@ int32 UContainerComponent::FindFirstFreeSlotIndex()
 	}
 
 	return IndexToReturn;
+}
+
+int32 UContainerComponent::FindFirstFreeSlotIndex()
+{
+	// Standard: gesamter Bereich
+	return FindFirstFreeSlotIndexInRange(0, GetSlotsCapacity());
 }
 
 void UContainerComponent::RemoveSingleInstanceOfItem(UItemBase* ItemToRemove)
@@ -91,36 +93,32 @@ void UContainerComponent::RemoveSingleInstanceOfItem(UItemBase* ItemToRemove)
 int32 UContainerComponent::RemoveAmountOfItem(UItemBase* ItemIn, int32 DesiredAmountToRemove)
 {
 	const int32 ActualAmountToRemove = FMath::Min(DesiredAmountToRemove, ItemIn->Quantity);
-
 	ItemIn->SetQuantity(ItemIn->Quantity - ActualAmountToRemove);
-
 	OnContainerUpdated.Broadcast();
-
 	return ActualAmountToRemove;
 }
 
 void UContainerComponent::SplitExistingStack(UItemBase* ItemIn, const int32 AmountToSplit)
 {
-	if (!(ContainerContents.Num() + 1 > ContainerSlotsCapacity))
+	if (!(ContainerContents.Num() + 1 > GetSlotsCapacity()))
 	{
 		RemoveAmountOfItem(ItemIn, AmountToSplit);
 		AddNewItem(ItemIn, AmountToSplit);
 	}
 }
 
-void UContainerComponent::TryMoveOrSwapOrMerge(UItemBase* ItemToTry, UItemBase* CurrentItemAtIndex,
-	const int32 TargetIndex)
+void UContainerComponent::TryMoveOrSwapOrMerge(UItemBase* ItemToTry, UItemBase* CurrentItemAtIndex, const int32 TargetIndex)
 {
 	if (!ItemToTry || !CheckIfIndexIsValid(TargetIndex)) return;
 	
 	if (!CurrentItemAtIndex)
 	{
-		// no item at target index
+		// move
 		ItemToTry->InventorySlotIndex = TargetIndex;
 	}
 	else
 	{
-		// item at target index -> check if same item type and if yes, can merge?
+		// merge?
 		if (ItemToTry->ID == CurrentItemAtIndex->ID)
 		{
 			const int32 MaxAmountToMerge = CalculateNumberForFullStack(CurrentItemAtIndex, ItemToTry->Quantity);
@@ -129,10 +127,11 @@ void UContainerComponent::TryMoveOrSwapOrMerge(UItemBase* ItemToTry, UItemBase* 
 			CurrentItemAtIndex->SetQuantity(CurrentItemAtIndex->Quantity + ActualAmountToMerge);
 			ItemToTry->SetQuantity(ItemToTry->Quantity - ActualAmountToMerge);
 		}
-		// else swap
 		else
 		{
-			CurrentItemAtIndex->InventorySlotIndex = ItemToTry->InventorySlotIndex;
+			// swap
+			const int32 OldIdx = ItemToTry->InventorySlotIndex;
+			CurrentItemAtIndex->InventorySlotIndex = OldIdx;
 			ItemToTry->InventorySlotIndex = TargetIndex;
 		}
 	}
@@ -142,102 +141,79 @@ void UContainerComponent::TryMoveOrSwapOrMerge(UItemBase* ItemToTry, UItemBase* 
 
 FItemAddResult UContainerComponent::HandleNonStackableItems(UItemBase* InputItem)
 {
-	// check if the input item has valid weight
-	if (FMath::IsNearlyZero(InputItem->GetItemSingleWeight()) || InputItem->GetItemSingleWeight() < 0)
+	// Slots voll?
+	if (ContainerContents.Num() + 1 > GetSlotsCapacity())
 	{
 		return FItemAddResult::AddedNone(FText::Format(
-			FText::FromString("Could not add {0} to the inventory. Item has invalid weight value"), InputItem->ItemTextData.Name));
-	}
-
-	// adding one more item would overflow slot capacity
-	if (ContainerContents.Num() + 1 > ContainerSlotsCapacity)
-	{
-		return FItemAddResult::AddedNone(FText::Format(
-			FText::FromString("Could not add {0} to the inventory. All inventory slots are full"), InputItem->ItemTextData.Name));
+			FText::FromString("Could not add {0}. All slots are full."), InputItem->ItemTextData.Name));
 	}
 
 	AddNewItem(InputItem);
 	return FItemAddResult::AddedAll(1, FText::Format(
-			FText::FromString("Successfully added a single {0} to the inventory."), InputItem->ItemTextData.Name));
+			FText::FromString("Added a single {0}."), InputItem->ItemTextData.Name));
 }
 
 int32 UContainerComponent::HandleStackableItems(UItemBase* InputItem, int32 RequestedAddAmount)
 {
-    if (!InputItem || RequestedAddAmount <= 0) return 0;
+	if (!InputItem || RequestedAddAmount <= 0) return 0;
 	
-    int32 AmountToDistribute = RequestedAddAmount;
+	int32 AmountToDistribute = RequestedAddAmount;
 
-    // first fill existing stack to the max
-    UItemBase* ExistingItemStack = FindNextPartialStack(InputItem);
-	
-    while (ExistingItemStack && AmountToDistribute > 0)
-    {
-        // how many items can be transfered to the existing stack
-        const int32 AmountToMakeFullStack = CalculateNumberForFullStack(ExistingItemStack, AmountToDistribute);
-        if (AmountToMakeFullStack <= 0)
-        {
-            // this stack is already full, find next stack
-            ExistingItemStack = FindNextPartialStack(InputItem);
-            continue;
-        }
+	// 1) vorhandene Teil-Stacks auffüllen
+	UItemBase* ExistingItemStack = FindNextPartialStack(InputItem);
+	while (ExistingItemStack && AmountToDistribute > 0)
+	{
+		const int32 AmountToMakeFullStack = CalculateNumberForFullStack(ExistingItemStack, AmountToDistribute);
+		if (AmountToMakeFullStack <= 0)
+		{
+			ExistingItemStack = FindNextPartialStack(InputItem);
+			continue;
+		}
 
-        // increase amount in stack
-        ExistingItemStack->SetQuantity(ExistingItemStack->Quantity + AmountToMakeFullStack);
+		ExistingItemStack->SetQuantity(ExistingItemStack->Quantity + AmountToMakeFullStack);
 
-        // reduce the rest
-        AmountToDistribute -= AmountToMakeFullStack;
-        InputItem->SetQuantity(AmountToDistribute);
+		AmountToDistribute -= AmountToMakeFullStack;
+		InputItem->SetQuantity(AmountToDistribute);
 
-        // if everything was distributed
-        if (AmountToDistribute <= 0)
-        {
-            OnContainerUpdated.Broadcast();
-            return RequestedAddAmount;
-        }
+		if (AmountToDistribute <= 0)
+		{
+			OnContainerUpdated.Broadcast();
+			return RequestedAddAmount;
+		}
 
-        // else find next stack
-        ExistingItemStack = FindNextPartialStack(InputItem);
-    }
+		ExistingItemStack = FindNextPartialStack(InputItem);
+	}
 
-    // 2) no more partial but still more to distribute -> check if there is another free slot to use
-    if (AmountToDistribute > 0)
-    {
-        if (ContainerContents.Num() + 1 <= ContainerSlotsCapacity)
-        {
-            // don`t place more than max quantity in one slot
-            const int32 ToPlace = InputItem->ItemNumericData.bIsStackable
-                ? FMath::Min(AmountToDistribute, InputItem->ItemNumericData.MaxStackSize)
-                : 1;
+	// 2) Rest in EINEN neuen Slot (falls frei)
+	if (AmountToDistribute > 0)
+	{
+		if (ContainerContents.Num() + 1 <= GetSlotsCapacity())
+		{
+			const int32 ToPlace = InputItem->ItemNumericData.bIsStackable
+				? FMath::Min(AmountToDistribute, InputItem->ItemNumericData.MaxStackSize)
+				: 1;
 
-            // Wenn nicht der ganze Rest reinpasst, Item-Quantity entsprechend kürzen,
-            // damit AddNewItem nur "ToPlace" übernimmt.
-            if (ToPlace < AmountToDistribute)
-            {
-                AmountToDistribute -= ToPlace;
-                InputItem->SetQuantity(AmountToDistribute);
+			if (ToPlace < AmountToDistribute)
+			{
+				AmountToDistribute -= ToPlace;
+				InputItem->SetQuantity(AmountToDistribute);
 
-                // Kopie erzeugen, damit der neue Stack unabhängig ist
-                AddNewItem(InputItem->CreateItemCopy(), ToPlace);
+				AddNewItem(InputItem->CreateItemCopy(), ToPlace);
+				OnContainerUpdated.Broadcast();
+				return RequestedAddAmount - AmountToDistribute;
+			}
 
-                OnContainerUpdated.Broadcast();
-                return RequestedAddAmount - AmountToDistribute; // ein Teil passte in den neuen Slot
-            }
+			AddNewItem(InputItem, AmountToDistribute);
+			OnContainerUpdated.Broadcast();
+			return RequestedAddAmount;
+		}
 
-            // Ganzen Rest passt in den einen neuen Slot
-            AddNewItem(InputItem, AmountToDistribute);
+		OnContainerUpdated.Broadcast();
+		return RequestedAddAmount - AmountToDistribute;
+	}
 
-            OnContainerUpdated.Broadcast();
-            return RequestedAddAmount;
-        }
-
-        // Kein Slot mehr frei – nur der zuvor in Partials verteilte Anteil zählt
-        OnContainerUpdated.Broadcast();
-        return RequestedAddAmount - AmountToDistribute;
-    }
-
-    // Es gab Rest=0 (alles in Partials untergebracht)
-    OnContainerUpdated.Broadcast();
-    return RequestedAddAmount;
+	OnContainerUpdated.Broadcast();
+	return RequestedAddAmount;
 }
 
 FItemAddResult UContainerComponent::HandleAddItem(UItemBase* InputItem)
@@ -246,56 +222,50 @@ FItemAddResult UContainerComponent::HandleAddItem(UItemBase* InputItem)
 	{
 		const int32 InitialRequestedAddAmount = InputItem->Quantity;
 
-		// handle non-stackable items
 		if (!InputItem->ItemNumericData.bIsStackable)
 		{
 			return HandleNonStackableItems(InputItem);
 		}
 
-		// handle stackable
 		const int32 StackableAmountAdded = HandleStackableItems(InputItem, InitialRequestedAddAmount);
 
 		if (StackableAmountAdded == InitialRequestedAddAmount)
 		{
 			return FItemAddResult::AddedAll(InitialRequestedAddAmount, FText::Format(
-			FText::FromString("Successfully added {0} {1} to the inventory."), InitialRequestedAddAmount, InputItem->ItemTextData.Name));
+			FText::FromString("Successfully added {0} {1}."), InitialRequestedAddAmount, InputItem->ItemTextData.Name));
 		}
-
 		if (StackableAmountAdded < InitialRequestedAddAmount && StackableAmountAdded > 0)
 		{
 			return FItemAddResult::AddedPartial(StackableAmountAdded, FText::Format(
-			FText::FromString("Partial amount ({0}) of {1} added to the inventory."), StackableAmountAdded, InputItem->ItemTextData.Name));
+			FText::FromString("Partial amount ({0}) of {1} added."), StackableAmountAdded, InputItem->ItemTextData.Name));
 		}
-
 		if (StackableAmountAdded <= 0)
 		{
 			return FItemAddResult::AddedNone(FText::Format(
-			FText::FromString("Could not add {0} to the inventory. No remaining inventory slots, or invalid item,"), InputItem->ItemTextData.Name));
+			FText::FromString("Could not add {0}. No remaining slots or invalid item."), InputItem->ItemTextData.Name));
 		}
 	}
 	check(false);
-	return FItemAddResult::AddedNone(FText::FromString("TryAddItem fallthrough error. GetOwner() check somehow failed."));
+	return FItemAddResult::AddedNone(FText::FromString("TryAddItem fallthrough error."));
 }
 
 void UContainerComponent::AddNewItem(UItemBase* Item, const int32 AmountToAdd)
 {
-	UItemBase* NewItem;
+	UItemBase* NewItem = nullptr;
 
 	if (Item->bIsCopy || Item->bIsPickup)
 	{
-		// if the item is already a copy, or is a world pickup
 		NewItem = Item;
 		NewItem->ResetItemFlags();
 	}
 	else
 	{
-		// used when splitting or dragging to/from another inventory
 		NewItem = Item->CreateItemCopy();
 	}
 
 	NewItem->OwningInventory = this;
 	NewItem->SetQuantity(AmountToAdd);
-	NewItem->InventorySlotIndex = FindFirstFreeSlotIndex();
+	NewItem->InventorySlotIndex = FindFirstFreeSlotIndex(); // Basis: irgendwo
 
 	ContainerContents.Add(NewItem);
 	OnContainerUpdated.Broadcast();
