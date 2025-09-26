@@ -49,17 +49,6 @@ UItemBase* UContainerComponent::FindNextPartialStack(UItemBase* ItemIn) const
 	return nullptr;
 }
 
-int32 UContainerComponent::CalculateWeightAddAmount(UItemBase* ItemIn, int32 RequestedAmount)
-{
-	const int32 WeightMaxAddAmount = FMath::FloorToInt((GetWeightCapacity() - InventoryTotalWeight) / ItemIn->GetItemSingleWeight());
-
-	if (WeightMaxAddAmount >= RequestedAmount)
-	{
-		return RequestedAmount;
-	}
-	return WeightMaxAddAmount;
-}
-
 int32 UContainerComponent::CalculateNumberForFullStack(UItemBase* StackableItem, int32 InitialRequestAddAmount)
 {
 	const int32 AddAmountToMakeFullStack = StackableItem->ItemNumericData.MaxStackSize - StackableItem->Quantity;
@@ -104,8 +93,6 @@ int32 UContainerComponent::RemoveAmountOfItem(UItemBase* ItemIn, int32 DesiredAm
 	const int32 ActualAmountToRemove = FMath::Min(DesiredAmountToRemove, ItemIn->Quantity);
 
 	ItemIn->SetQuantity(ItemIn->Quantity - ActualAmountToRemove);
-
-	InventoryTotalWeight -= ActualAmountToRemove * ItemIn->GetItemSingleWeight();
 
 	OnContainerUpdated.Broadcast();
 
@@ -162,13 +149,6 @@ FItemAddResult UContainerComponent::HandleNonStackableItems(UItemBase* InputItem
 			FText::FromString("Could not add {0} to the inventory. Item has invalid weight value"), InputItem->ItemTextData.Name));
 	}
 
-	// will the item weight overflow the capacity
-	if (InventoryTotalWeight + InputItem->GetItemSingleWeight() > GetWeightCapacity())
-	{
-		return FItemAddResult::AddedNone(FText::Format(
-			FText::FromString("Could not add {0} to the inventory. Item would overflow weight limit"), InputItem->ItemTextData.Name));
-	}
-
 	// adding one more item would overflow slot capacity
 	if (ContainerContents.Num() + 1 > ContainerSlotsCapacity)
 	{
@@ -183,98 +163,81 @@ FItemAddResult UContainerComponent::HandleNonStackableItems(UItemBase* InputItem
 
 int32 UContainerComponent::HandleStackableItems(UItemBase* InputItem, int32 RequestedAddAmount)
 {
-	if (RequestedAddAmount <= 0 || FMath::IsNearlyZero(InputItem->GetItemStackWeight())) return 0;
+    if (!InputItem || RequestedAddAmount <= 0) return 0;
+	
+    int32 AmountToDistribute = RequestedAddAmount;
 
-	int32 AmountToDistribute = RequestedAddAmount;
+    // first fill existing stack to the max
+    UItemBase* ExistingItemStack = FindNextPartialStack(InputItem);
+	
+    while (ExistingItemStack && AmountToDistribute > 0)
+    {
+        // how many items can be transfered to the existing stack
+        const int32 AmountToMakeFullStack = CalculateNumberForFullStack(ExistingItemStack, AmountToDistribute);
+        if (AmountToMakeFullStack <= 0)
+        {
+            // this stack is already full, find next stack
+            ExistingItemStack = FindNextPartialStack(InputItem);
+            continue;
+        }
 
-	// check if the item already exist in the inventory and is not a full stack
-	UItemBase* ExistingItemStack = FindNextPartialStack(InputItem);
+        // increase amount in stack
+        ExistingItemStack->SetQuantity(ExistingItemStack->Quantity + AmountToMakeFullStack);
 
-	// distribute item stack over existing stacks
-	while (ExistingItemStack)
-	{
-		// calculate how many of the existing item would be needed to make the next full stack
-		const int32 AmountToMakeFullStack = CalculateNumberForFullStack(ExistingItemStack, AmountToDistribute);
-		// calculate how many of the AmountToMakeFullStack can actually be carried (delete if player should be able to pickup more than max weight capacity)
-		const int32 WeightLimitAddAmount = CalculateWeightAddAmount(ExistingItemStack, AmountToMakeFullStack);
+        // reduce the rest
+        AmountToDistribute -= AmountToMakeFullStack;
+        InputItem->SetQuantity(AmountToDistribute);
 
-		// as long as the remaining amount of the item does not overflow the weight capacity
-		if (WeightLimitAddAmount > 0)
-		{
-			// adjust the existing items stack quantity and inventory total weight
-			ExistingItemStack->SetQuantity(ExistingItemStack->Quantity + WeightLimitAddAmount);
-			InventoryTotalWeight += ExistingItemStack->GetItemSingleWeight() * WeightLimitAddAmount;
+        // if everything was distributed
+        if (AmountToDistribute <= 0)
+        {
+            OnContainerUpdated.Broadcast();
+            return RequestedAddAmount;
+        }
 
-			// adjust the count to be distributed
-			AmountToDistribute -= WeightLimitAddAmount;
+        // else find next stack
+        ExistingItemStack = FindNextPartialStack(InputItem);
+    }
 
-			InputItem->SetQuantity(AmountToDistribute);
+    // 2) no more partial but still more to distribute -> check if there is another free slot to use
+    if (AmountToDistribute > 0)
+    {
+        if (ContainerContents.Num() + 1 <= ContainerSlotsCapacity)
+        {
+            // don`t place more than max quantity in one slot
+            const int32 ToPlace = InputItem->ItemNumericData.bIsStackable
+                ? FMath::Min(AmountToDistribute, InputItem->ItemNumericData.MaxStackSize)
+                : 1;
 
-			// TODO: Refine this logic since going over weight capactiy should not ever be possible (original) or add effect (mine)
-			// if max weight capacity is reached, no need to run the loop again
-			if (InventoryTotalWeight + ExistingItemStack->GetItemSingleWeight() > InventoryWeightCapacity)
-			{
-				OnContainerUpdated.Broadcast();
-				return RequestedAddAmount - AmountToDistribute;
-			}
-		}
-		else if (WeightLimitAddAmount <= 0)
-		{
-			if (AmountToDistribute != RequestedAddAmount)
-			{
-				// this block will be reached if distributing an item across multiple stacks
-				// and the weight limit is hit during that process
-				OnContainerUpdated.Broadcast();
-				return RequestedAddAmount - AmountToDistribute;
-			}
+            // Wenn nicht der ganze Rest reinpasst, Item-Quantity entsprechend kürzen,
+            // damit AddNewItem nur "ToPlace" übernimmt.
+            if (ToPlace < AmountToDistribute)
+            {
+                AmountToDistribute -= ToPlace;
+                InputItem->SetQuantity(AmountToDistribute);
 
-			// reached if there is a partial stack but none of it can be added at all
-			return 0;
-		}
+                // Kopie erzeugen, damit der neue Stack unabhängig ist
+                AddNewItem(InputItem->CreateItemCopy(), ToPlace);
 
-		if (AmountToDistribute <= 0)
-		{
-			// all the input item was distributed across existing stacks
-			OnContainerUpdated.Broadcast();
-			return RequestedAddAmount;
-		}
+                OnContainerUpdated.Broadcast();
+                return RequestedAddAmount - AmountToDistribute; // ein Teil passte in den neuen Slot
+            }
 
-		// check if there is another valid partial stack of the input item
-		ExistingItemStack = FindNextPartialStack(InputItem);
-	}
+            // Ganzen Rest passt in den einen neuen Slot
+            AddNewItem(InputItem, AmountToDistribute);
 
-	// no more partial stacks found, check if a new stack can be added
-	if (ContainerContents.Num() + 1 <= ContainerSlotsCapacity)
-	{
-		// attempt to add as many form the remaining item quantity that can fit inventory weight capacity
-		const int32 WeightLimitAddAmount = CalculateWeightAddAmount(InputItem, AmountToDistribute);
+            OnContainerUpdated.Broadcast();
+            return RequestedAddAmount;
+        }
 
-		if (WeightLimitAddAmount > 0)
-		{
-			// if there is still more item to distribute, but weight limit has been reached
-			if (WeightLimitAddAmount < AmountToDistribute)
-			{
-				// adjust the input item and add a new stack with as many as can be held
-				AmountToDistribute -= WeightLimitAddAmount;
-				InputItem->SetQuantity(AmountToDistribute);
+        // Kein Slot mehr frei – nur der zuvor in Partials verteilte Anteil zählt
+        OnContainerUpdated.Broadcast();
+        return RequestedAddAmount - AmountToDistribute;
+    }
 
-				// create a copy since only a partial stack can be added (copy so new item in inventory does NOT
-				// share pointer with still existing pickup item in world)
-				AddNewItem(InputItem->CreateItemCopy(), WeightLimitAddAmount);
-				return RequestedAddAmount - AmountToDistribute;
-			}
-
-			// otherwise the full remainder of the stack can be added
-			AddNewItem(InputItem, AmountToDistribute);
-			return RequestedAddAmount;
-		}
-
-		// reached if there is free item slots, but no remaining weight capacity
-		return RequestedAddAmount - AmountToDistribute;
-	}
-
-	// can only be reached if there is no existing stack and no extra capacity slots
-	return 0;
+    // Es gab Rest=0 (alles in Partials untergebracht)
+    OnContainerUpdated.Broadcast();
+    return RequestedAddAmount;
 }
 
 FItemAddResult UContainerComponent::HandleAddItem(UItemBase* InputItem)
@@ -335,6 +298,5 @@ void UContainerComponent::AddNewItem(UItemBase* Item, const int32 AmountToAdd)
 	NewItem->InventorySlotIndex = FindFirstFreeSlotIndex();
 
 	ContainerContents.Add(NewItem);
-	InventoryTotalWeight += NewItem->GetItemStackWeight();
 	OnContainerUpdated.Broadcast();
 }

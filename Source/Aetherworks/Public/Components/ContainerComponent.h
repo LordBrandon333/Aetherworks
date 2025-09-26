@@ -62,9 +62,7 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AETHERWORKS_API UContainerComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
-
-
+	
 	//============================================================================================================
 	//	FUNCTIONS
 	//============================================================================================================
@@ -79,33 +77,30 @@ public:
 	UFUNCTION(Category = "Container") UItemBase* FindNextPartialStack(UItemBase* ItemIn) const;
 	
 	UFUNCTION(Category = "Container") void RemoveSingleInstanceOfItem(UItemBase* ItemToRemove);
-	UFUNCTION(Category = "Container") int32 RemoveAmountOfItem(UItemBase* ItemIn, int32 DesiredAmountToRemove);
+	UFUNCTION(Category = "Container") virtual int32 RemoveAmountOfItem(UItemBase* ItemIn, int32 DesiredAmountToRemove);
 	UFUNCTION(Category = "Container") void SplitExistingStack(UItemBase* ItemIn, const int32 AmountToSplit);
 	UFUNCTION(Category = "Container") void TryMoveOrSwapOrMerge(UItemBase* ItemToTry, UItemBase* CurrentItemAtIndex, const int32 TargetIndex);
 
 	//=== Getters ===
-	UFUNCTION(Category = "Container") FORCEINLINE float GetInventoryTotalWeight() const { return InventoryTotalWeight; };
-	UFUNCTION(Category = "Container") FORCEINLINE float GetWeightCapacity() const {return InventoryWeightCapacity; };
 	UFUNCTION(Category = "Container") FORCEINLINE int32 GetSlotsCapacity() const {return ContainerSlotsCapacity; };
 	UFUNCTION(Category = "Container") FORCEINLINE TArray<UItemBase*> GetInventoryContents() const { return ContainerContents; };
 	UFUNCTION(Category = "Container") FORCEINLINE bool CheckIfIndexIsValid(const int32 Index) const { return Index >= 0 && Index < ContainerSlotsCapacity; }
 
 	//=== Setters ===
 	UFUNCTION(Category = "Container") FORCEINLINE void SetSlotsCapacity(const int32 NewSlotsCapacity) { ContainerSlotsCapacity = NewSlotsCapacity; };
-	UFUNCTION(Category = "Container") FORCEINLINE void SetWeightCapacity(const float NewWeightCapacity) { InventoryWeightCapacity = NewWeightCapacity; };
+
 
 protected:
 	
 	virtual void BeginPlay() override;
 
-	FItemAddResult HandleNonStackableItems(UItemBase* InputItem);
-	int32 HandleStackableItems(UItemBase* InputItem, int32 RequestedAddAmount);
-	int32 CalculateWeightAddAmount(UItemBase* ItemIn, int32 RequestedAmount);
+	virtual FItemAddResult HandleNonStackableItems(UItemBase* InputItem);
+	virtual int32 HandleStackableItems(UItemBase* InputItem, int32 RequestedAddAmount);
 	int32 CalculateNumberForFullStack(UItemBase* StackableItem, int32 InitialRequestAddAmount);
 
 	int32 FindFirstFreeSlotIndex();
 	
-	void AddNewItem(UItemBase* Item, const int32 AmountToAdd = 1);
+	virtual void AddNewItem(UItemBase* Item, const int32 AmountToAdd = 1);
 	
 	//============================================================================================================
 	//	PROPERTIES & VARIABLES
@@ -116,14 +111,8 @@ public:
 
 protected:
 	
-	UPROPERTY(VisibleAnywhere, Category = "Inventory")
-	float InventoryTotalWeight;
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Container")
 	int32 ContainerSlotsCapacity = 28;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory")
-	float InventoryWeightCapacity = 50.f;
 
 	UPROPERTY(VisibleAnywhere, Category = "Container")
 	TArray<TObjectPtr<UItemBase>> ContainerContents;
