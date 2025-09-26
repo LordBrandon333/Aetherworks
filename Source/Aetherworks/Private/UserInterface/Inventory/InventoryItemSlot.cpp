@@ -81,7 +81,9 @@ bool UInventoryItemSlot::NativeOnDrop(const FGeometry& InGeometry, const FDragDr
 	UDragDropOperation* InOperation)
 {
 	const UItemDragDropOperation* ItemDragDrop = Cast<UItemDragDropOperation>(InOperation);
-	if (ItemDragDrop->SourceItem && InventoryReference)
+	if (!ItemDragDrop || !InventoryReference) return false;
+	
+	if (ItemDragDrop->SourceItem)
 	{
 		InventoryReference->TryMoveOrSwapOrMerge(ItemDragDrop->SourceItem, this->ItemReference, this->SlotIndex);
 		// returning true will stop the drop operation at this widget
@@ -150,5 +152,5 @@ void UInventoryItemSlot::ResetToEmptySlot()
 	ItemIcon->SetVisibility(ESlateVisibility::Collapsed);
 	ItemQuantity->SetVisibility(ESlateVisibility::Collapsed);
 	ItemReference = nullptr;
-	SlotToolTip->ClearItemToolTipText();
+	if (SlotToolTip) SlotToolTip->ClearItemToolTipText();
 }

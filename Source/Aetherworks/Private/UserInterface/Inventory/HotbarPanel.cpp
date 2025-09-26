@@ -10,8 +10,6 @@
 #include "UserInterface/Inventory/InventoryItemSlot.h"
 #include "UserInterface/Inventory/ItemDragDropOperation.h"
 
-
-
 void UHotbarPanel::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
@@ -33,6 +31,8 @@ bool UHotbarPanel::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEven
 {
 	const UItemDragDropOperation* ItemDragDrop = Cast<UItemDragDropOperation>(InOperation);
 
+	if (!ItemDragDrop) return false;
+
 	if (ItemDragDrop->SourceItem && InventoryReference)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Detected an item drop on HotbarPanel."));
@@ -42,6 +42,13 @@ bool UHotbarPanel::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEven
 	}
 	// returning false will cause the drop operation to fall through to underlying widgets (if any)
 	return false;
+}
+
+bool UHotbarPanel::CheckIfIndexIsValid(const int32 Index) const
+{
+	return InventoryReference 
+		&& Index >= InventoryReference->GetHotbarStart() 
+		&& Index <  InventoryReference->GetHotbarEnd(); 
 }
 
 void UHotbarPanel::BuildSlotsIfNeeded()
@@ -80,15 +87,17 @@ void UHotbarPanel::ClearSlotVisuals()
 void UHotbarPanel::FillSlotVisuals()
 {
 	const TArray<UItemBase*>& Items = InventoryReference->GetContainerRegionContents(EContainerRegion::Hotbar);
+	const int32 Start = InventoryReference->GetHotbarStart();
 
 	for (UItemBase* Item : Items)
 	{
 		if (!Item) continue;
 
-		const int32 Idx = Item->InventorySlotIndex;
-		if (!CheckIfIndexIsValid(Idx)) continue;
+		const int32 AbsIdx = Item->InventorySlotIndex;
+		const int32 RelIdx = AbsIdx - Start;
+		if (RelIdx < 0 || RelIdx >= HotbarSlots.Num()) continue;
 
-		HotbarSlots[Idx]->InitializeVisualization(Item);
+		HotbarSlots[RelIdx]->InitializeVisualization(Item);
 	}
 }
 

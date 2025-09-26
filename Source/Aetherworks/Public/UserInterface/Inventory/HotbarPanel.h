@@ -29,7 +29,7 @@ protected:
 	virtual void NativeOnInitialized() override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 
-	UFUNCTION(Category = "Inventory") FORCEINLINE bool CheckIfIndexIsValid(const int32 Index) const { return Index >= 0 && Index < CachedCapacity; }
+	UFUNCTION(Category = "Inventory") FORCEINLINE bool CheckIfIndexIsValid(const int32 Index) const;
 
 	void BuildSlotsIfNeeded();
 	void ClearSlotVisuals();
