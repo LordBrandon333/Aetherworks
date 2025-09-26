@@ -124,11 +124,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Inventory")
 	float InventoryTotalWeight;
 	
-	UPROPERTY(EditInstanceOnly, Category = "Inventory")
-	int32 InventorySlotsCapacity;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory")
+	int32 InventorySlotsCapacity = 28;
 	
-	UPROPERTY(EditInstanceOnly, Category = "Inventory")
-	float InventoryWeightCapacity;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory")
+	float InventoryWeightCapacity = 50.f;
 
 	UPROPERTY(VisibleAnywhere, Category = "Inventory")
 	TArray<TObjectPtr<UItemBase>> InventoryContents;

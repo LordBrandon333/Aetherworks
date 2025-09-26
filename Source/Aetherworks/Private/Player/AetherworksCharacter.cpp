@@ -63,8 +63,6 @@ AAetherworksCharacter::AAetherworksCharacter()
 
 	// Create Inventory
 	PlayerInventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("PlayerInventory"));
-	PlayerInventory->SetSlotsCapacity(20);
-	PlayerInventory->SetWeightCapacity(50);
 
 	InteractionCheckFrequency = 0.1f;
 	InteractionCheckDistance = 200.f;
