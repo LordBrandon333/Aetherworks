@@ -5,7 +5,7 @@
 
 #include "Components/Border.h"
 #include "Components/Image.h"
-#include "Components/InventoryComponent.h"
+#include "Components/ContainerComponent.h"
 #include "Components/TextBlock.h"
 #include "Items/ItemBase.h"
 #include "UserInterface/Inventory/DragItemVisual.h"
@@ -87,7 +87,7 @@ bool UInventoryItemSlot::NativeOnDrop(const FGeometry& InGeometry, const FDragDr
 	return false;
 }
 
-void UInventoryItemSlot::InitializeAsEmptyInventorySlot(UInventoryComponent* InInventory, int32 InIndex)
+void UInventoryItemSlot::InitializeAsEmptyInventorySlot(UContainerComponent* InInventory, int32 InIndex)
 {
 	if (InInventory && InInventory->CheckIfIndexIsValid(InIndex))
 	{

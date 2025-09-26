@@ -8,7 +8,7 @@
 #include "ItemBase.generated.h"
 
 
-class UInventoryComponent;
+class UContainerComponent;
 
 UCLASS()
 class AETHERWORKS_API UItemBase : public UObject
@@ -47,7 +47,7 @@ public:
 	//============================================================================================================
 	
 	UPROPERTY()
-	UInventoryComponent* OwningInventory;
+	UContainerComponent* OwningInventory;
 
 	UPROPERTY(VisibleAnywhere, Category = "Item")
 	int32 InventorySlotIndex = INDEX_NONE;

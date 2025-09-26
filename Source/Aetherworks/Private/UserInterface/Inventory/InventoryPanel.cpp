@@ -21,7 +21,7 @@ void UInventoryPanel::NativeOnInitialized()
 		InventoryReference = PlayerCharacter->GetInventory();
 		if (InventoryReference)
 		{
-			InventoryReference->OnInventoryUpdated.AddUObject(this, &UInventoryPanel::RefreshInventory);
+			InventoryReference->OnContainerUpdated.AddUObject(this, &UInventoryPanel::RefreshInventory);
 			RefreshInventory();
 		}
 	}

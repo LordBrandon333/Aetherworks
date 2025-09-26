@@ -7,7 +7,7 @@
 #include "ItemDragDropOperation.generated.h"
 
 class UItemBase;
-class UInventoryComponent;
+class UContainerComponent;
 
 UCLASS()
 class AETHERWORKS_API UItemDragDropOperation : public UDragDropOperation
@@ -23,5 +23,5 @@ public:
 	UItemBase* SourceItem;
 
 	UPROPERTY()
-	UInventoryComponent* SourceInventory;
+	UContainerComponent* SourceInventory;
 };
