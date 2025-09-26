@@ -48,6 +48,9 @@ public:
 	
 	UPROPERTY()
 	UInventoryComponent* OwningInventory;
+
+	UPROPERTY(VisibleAnywhere, Category = "Item")
+	int32 InventorySlotIndex = INDEX_NONE;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Item")
 	int32 Quantity;

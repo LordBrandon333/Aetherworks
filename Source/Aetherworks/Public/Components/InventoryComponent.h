@@ -110,6 +110,8 @@ protected:
 	int32 CalculateWeightAddAmount(UItemBase* ItemIn, int32 RequestedAmount);
 	int32 CalculateNumberForFullStack(UItemBase* StackableItem, int32 InitialRequestAddAmount);
 
+	int32 FindFirstFreeSlotIndex();
+	
 	void AddNewItem(UItemBase* Item, const int32 AmountToAdd = 1);
 
 	//============================================================================================================

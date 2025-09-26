@@ -22,7 +22,7 @@ void UInventoryPanel::NativeOnInitialized()
 		if (InventoryReference)
 		{
 			InventoryReference->OnInventoryUpdated.AddUObject(this, &UInventoryPanel::RefreshInventory);
-			SetInfoText();
+			RefreshInventory();
 		}
 	}
 }
@@ -48,15 +48,26 @@ void UInventoryPanel::RefreshInventory()
 	if (InventoryReference && InventorySlotClass)
 	{
 		InventoryWrapBox->ClearChildren();
+
+		TArray<UInventoryItemSlot*> AllSlots;
+
+		for (int32 i = 0; i < InventoryReference->GetSlotsCapacity(); ++i)
+		{
+			UInventoryItemSlot* ItemSlot = CreateWidget<UInventoryItemSlot>(this, InventorySlotClass);
+			ItemSlot->InitializeAsEmptyInventorySlot(i);
+			AllSlots.Add(ItemSlot);
+		}
 		
 		for (UItemBase* const& InventoryItem : InventoryReference->GetInventoryContents())
 		{
-			UInventoryItemSlot* ItemSlot = CreateWidget<UInventoryItemSlot>(this, InventorySlotClass);
-			ItemSlot->SetItemReference(InventoryItem);
-
-			InventoryWrapBox->AddChildToWrapBox(ItemSlot);
+			AllSlots[InventoryItem->InventorySlotIndex]->InitializeVisualization(InventoryItem);
 		}
 
+		for (UInventoryItemSlot* InventorySlot : AllSlots)
+		{
+			InventoryWrapBox->AddChildToWrapBox(InventorySlot);
+		}
+		
 		SetInfoText();
 	}
 }

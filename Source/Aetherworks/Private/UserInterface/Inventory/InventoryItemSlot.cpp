@@ -15,23 +15,24 @@ void UInventoryItemSlot::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
+	/*
 	if (TooltipClass)
 	{
 		UInventoryTooltip* Tooltip = CreateWidget<UInventoryTooltip>(this, TooltipClass);
 		Tooltip->InventorySlotBeingHovered = this;
 		SetToolTip(Tooltip);
-	}
+	}*/
 }
 
 void UInventoryItemSlot::NativeConstruct()
 {
 	Super::NativeConstruct();
-
+	/*
 	if (ItemReference)
 	{
 		switch (ItemReference->ItemQuality) {
 		case EItemQuality::Shoddy:
-			ItemBorder->SetBrushColor(FLinearColor::Gray);
+			ItemBorder->SetBrushColor(FLinearColor(0.82f, 0.7f, 0.54f, 1.f));
 			break;
 		case EItemQuality::Common:
 			ItemBorder->SetBrushColor(FLinearColor::White);
@@ -57,7 +58,7 @@ void UInventoryItemSlot::NativeConstruct()
 		{
 			ItemQuantity->SetVisibility(ESlateVisibility::Collapsed);
 		}
-	}
+	}*/
 }
 
 FReply UInventoryItemSlot::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -84,6 +85,8 @@ void UInventoryItemSlot::NativeOnDragDetected(const FGeometry& InGeometry, const
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
+	if (!ItemReference) return;
+
 	if (DragItemVisualClass)
 	{
 		const TObjectPtr<UDragItemVisual> DragVisual = CreateWidget<UDragItemVisual>(this, DragItemVisualClass);
@@ -109,4 +112,57 @@ bool UInventoryItemSlot::NativeOnDrop(const FGeometry& InGeometry, const FDragDr
 	UDragDropOperation* InOperation)
 {
 	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+}
+
+void UInventoryItemSlot::InitializeAsEmptyInventorySlot(int32 IndexIn)
+{
+	ItemBorder->SetBrushColor(FLinearColor::Gray);
+	ItemIcon->SetVisibility(ESlateVisibility::Collapsed);
+	ItemQuantity->SetVisibility(ESlateVisibility::Collapsed);
+	SlotIndex = IndexIn;
+}
+
+void UInventoryItemSlot::InitializeVisualization(UItemBase* ItemIn)
+{
+	if (!ItemIn) return;
+	
+	ItemReference = ItemIn;
+
+	switch (ItemReference->ItemQuality) {
+	case EItemQuality::Shoddy:
+		ItemBorder->SetBrushColor(FLinearColor(0.82f, 0.7f, 0.54f, 1.f));
+		break;
+	case EItemQuality::Common:
+		ItemBorder->SetBrushColor(FLinearColor::White);
+		break;
+	case EItemQuality::Quality:
+		ItemBorder->SetBrushColor(FLinearColor(0.f, 0.51f, 0.169f, 1.f));
+		break;
+	case EItemQuality::Masterwork:
+		ItemBorder->SetBrushColor(FLinearColor(0.f, 0.4f, 0.75f, 1.f));
+		break;
+	case EItemQuality::Grandmaster:
+		ItemBorder->SetBrushColor(FLinearColor(1.f, 0.45f, 0.f, 1.0f)); // orange color
+		break;
+	}
+
+	ItemIcon->SetBrushFromTexture(ItemReference->ItemAssetData.Icon);
+	ItemIcon->SetVisibility(ESlateVisibility::Visible);
+
+	if (ItemReference->ItemNumericData.bIsStackable)
+	{
+		ItemQuantity->SetText(FText::AsNumber(ItemReference->Quantity));
+		ItemQuantity->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		ItemQuantity->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	if (TooltipClass)
+	{
+		UInventoryTooltip* Tooltip = CreateWidget<UInventoryTooltip>(this, TooltipClass);
+		Tooltip->InventorySlotBeingHovered = this;
+		SetToolTip(Tooltip);
+	}
 }

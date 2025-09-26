@@ -56,6 +56,7 @@ void APickup::InitializeDrop(UItemBase* ItemToDrop, const int32 InQuantity)
 	InQuantity <= 0 ? ItemReference->SetQuantity(1) : ItemReference->SetQuantity(InQuantity);
 	ItemReference->ItemNumericData.Weight = ItemToDrop->GetItemSingleWeight();
 	ItemReference->OwningInventory = nullptr;
+	ItemReference->InventorySlotIndex = INDEX_NONE;
 	PickupMesh->SetStaticMesh(ItemToDrop->ItemAssetData.Mesh);
 	
 	UpdateInteractableData();

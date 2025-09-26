@@ -74,6 +74,32 @@ int32 UInventoryComponent::CalculateNumberForFullStack(UItemBase* StackableItem,
 	return FMath::Min(InitialRequestAddAmount, AddAmountToMakeFullStack);
 }
 
+int32 UInventoryComponent::FindFirstFreeSlotIndex()
+{
+	int32 IndexToReturn = INDEX_NONE;
+
+	for (int32 IndexToTest = 0; IndexToTest < GetSlotsCapacity(); ++IndexToTest)
+	{
+		bool bTestedIndexFound = false;
+		for (const UItemBase* ItemInArray : InventoryContents)
+		{
+			if (ItemInArray->InventorySlotIndex == IndexToTest)
+			{
+				bTestedIndexFound = true;
+				break;
+			}
+		}
+		
+		if (!bTestedIndexFound)
+		{
+			IndexToReturn = IndexToTest;
+			break;
+		}
+	}
+
+	return IndexToReturn;
+}
+
 void UInventoryComponent::RemoveSingleInstanceOfItem(UItemBase* ItemToRemove)
 {
 	InventoryContents.RemoveSingle(ItemToRemove);
@@ -281,6 +307,7 @@ void UInventoryComponent::AddNewItem(UItemBase* Item, const int32 AmountToAdd)
 
 	NewItem->OwningInventory = this;
 	NewItem->SetQuantity(AmountToAdd);
+	NewItem->InventorySlotIndex = FindFirstFreeSlotIndex();
 
 	InventoryContents.Add(NewItem);
 	InventoryTotalWeight += NewItem->GetItemStackWeight();

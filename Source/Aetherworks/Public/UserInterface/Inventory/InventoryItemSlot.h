@@ -27,6 +27,9 @@ public:
 	FORCEINLINE void SetItemReference(UItemBase* ItemIn) { ItemReference = ItemIn; }
 	FORCEINLINE UItemBase* GetItemReference() const { return ItemReference; }
 
+	void InitializeAsEmptyInventorySlot(int32 IndexIn);
+	void InitializeVisualization(UItemBase* ItemIn);
+
 protected:
 	
 	virtual void NativeOnInitialized() override;
@@ -48,14 +51,17 @@ protected:
 	TSubclassOf<UInventoryTooltip> TooltipClass;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Inventory Slot")
-	UItemBase* ItemReference;
+	UItemBase* ItemReference = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Inventory Slot", meta = (BindWidget))
-	UBorder* ItemBorder;
+	UBorder* ItemBorder = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Inventory Slot", meta = (BindWidget))
-	UImage* ItemIcon;
+	UImage* ItemIcon = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Inventory Slot", meta = (BindWidget))
-	UTextBlock* ItemQuantity;
+	UTextBlock* ItemQuantity = nullptr;
+
+	UPROPERTY(VisibleAnywhere, Category = "Inventory | Slot");
+	int32 SlotIndex = INDEX_NONE;
 };
