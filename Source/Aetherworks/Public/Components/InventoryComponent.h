@@ -80,6 +80,7 @@ public:
 	UFUNCTION(Category = "Inventory") void RemoveSingleInstanceOfItem(UItemBase* ItemToRemove);
 	UFUNCTION(Category = "Inventory") int32 RemoveAmountOfItem(UItemBase* ItemIn, int32 DesiredAmountToRemove);
 	UFUNCTION(Category = "Inventory") void SplitExistingStack(UItemBase* ItemIn, const int32 AmountToSplit);
+	UFUNCTION(Category = "Inventory") void TryMoveOrSwapOrMerge(UItemBase* ItemToTry, UItemBase* CurrentItemAtIndex, const int32 TargetIndex);
 
 	//=== Getters ===
 	UFUNCTION(Category = "Inventory") FORCEINLINE float GetInventoryTotalWeight() const { return InventoryTotalWeight; };
@@ -111,6 +112,7 @@ protected:
 	int32 CalculateNumberForFullStack(UItemBase* StackableItem, int32 InitialRequestAddAmount);
 
 	int32 FindFirstFreeSlotIndex();
+	bool CheckIfIndexIsValid(const int32 Index) const { return Index >= 0 && Index < InventorySlotsCapacity; }
 	
 	void AddNewItem(UItemBase* Item, const int32 AmountToAdd = 1);
 

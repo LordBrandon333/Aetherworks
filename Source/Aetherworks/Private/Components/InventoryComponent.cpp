@@ -128,6 +128,28 @@ void UInventoryComponent::SplitExistingStack(UItemBase* ItemIn, const int32 Amou
 	}
 }
 
+void UInventoryComponent::TryMoveOrSwapOrMerge(UItemBase* ItemToTry, UItemBase* CurrentItemAtIndex,
+	const int32 TargetIndex)
+{
+	if (!ItemToTry || !CheckIfIndexIsValid(TargetIndex)) return;
+	GEngine->AddOnScreenDebugMessage(
+		-1, 5.f, FColor::Green,
+		FString::Printf(TEXT("SlotIndex: %d"), TargetIndex)
+	);
+	
+	if (!CurrentItemAtIndex)
+	{
+		// no item at target index
+		ItemToTry->InventorySlotIndex = TargetIndex;
+		OnInventoryUpdated.Broadcast();
+	}
+	else
+	{
+		// item at target index -> check if same item type and if yes, can merge? else swap
+		
+	}
+}
+
 FItemAddResult UInventoryComponent::HandleNonStackableItems(UItemBase* InputItem)
 {
 	// check if the input item has valid weight

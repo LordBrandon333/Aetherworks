@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryItemSlot.generated.h"
 
+class UInventoryComponent;
 class UImage;
 class UBorder;
 class UTextBlock;
@@ -27,7 +28,7 @@ public:
 	FORCEINLINE void SetItemReference(UItemBase* ItemIn) { ItemReference = ItemIn; }
 	FORCEINLINE UItemBase* GetItemReference() const { return ItemReference; }
 
-	void InitializeAsEmptyInventorySlot(int32 IndexIn);
+	void InitializeAsEmptyInventorySlot(UInventoryComponent* InInventory, int32 IndexIn);
 	void InitializeVisualization(UItemBase* ItemIn);
 
 protected:
@@ -64,4 +65,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Inventory | Slot");
 	int32 SlotIndex = INDEX_NONE;
+
+	UPROPERTY(VisibleAnywhere, Category = "Inventory | Slot");
+	UInventoryComponent* InventoryReference;
 };

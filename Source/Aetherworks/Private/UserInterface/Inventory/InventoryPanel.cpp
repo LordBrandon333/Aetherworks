@@ -54,7 +54,7 @@ void UInventoryPanel::RefreshInventory()
 		for (int32 i = 0; i < InventoryReference->GetSlotsCapacity(); ++i)
 		{
 			UInventoryItemSlot* ItemSlot = CreateWidget<UInventoryItemSlot>(this, InventorySlotClass);
-			ItemSlot->InitializeAsEmptyInventorySlot(i);
+			ItemSlot->InitializeAsEmptyInventorySlot(InventoryReference, i);
 			AllSlots.Add(ItemSlot);
 		}
 		

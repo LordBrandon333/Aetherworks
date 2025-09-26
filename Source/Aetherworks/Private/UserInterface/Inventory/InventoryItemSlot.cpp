@@ -5,11 +5,13 @@
 
 #include "Components/Border.h"
 #include "Components/Image.h"
+#include "Components/InventoryComponent.h"
 #include "Components/TextBlock.h"
 #include "Items/ItemBase.h"
 #include "UserInterface/Inventory/DragItemVisual.h"
 #include "UserInterface/Inventory/InventoryTooltip.h"
 #include "UserInterface/Inventory/ItemDragDropOperation.h"
+#include "Engine/Engine.h"
 
 void UInventoryItemSlot::NativeOnInitialized()
 {
@@ -111,15 +113,25 @@ void UInventoryItemSlot::NativeOnDragDetected(const FGeometry& InGeometry, const
 bool UInventoryItemSlot::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
 	UDragDropOperation* InOperation)
 {
-	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+	const UItemDragDropOperation* ItemDragDrop = Cast<UItemDragDropOperation>(InOperation);
+	if (ItemDragDrop->SourceItem && InventoryReference)
+	{
+		InventoryReference->TryMoveOrSwapOrMerge(ItemDragDrop->SourceItem, this->ItemReference, this->SlotIndex);
+		// returning true will stop the drop operation at this widget
+		return true;
+	}
+	
+	// returning false will cause the drop operation to fall through to underlying widgets (if any)
+	return false;
 }
 
-void UInventoryItemSlot::InitializeAsEmptyInventorySlot(int32 IndexIn)
+void UInventoryItemSlot::InitializeAsEmptyInventorySlot(UInventoryComponent* InInventory, int32 IndexIn)
 {
 	ItemBorder->SetBrushColor(FLinearColor::Gray);
 	ItemIcon->SetVisibility(ESlateVisibility::Collapsed);
 	ItemQuantity->SetVisibility(ESlateVisibility::Collapsed);
 	SlotIndex = IndexIn;
+	InventoryReference = InInventory;
 }
 
 void UInventoryItemSlot::InitializeVisualization(UItemBase* ItemIn)
