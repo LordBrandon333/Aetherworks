@@ -63,12 +63,13 @@ class AETHERWORKS_API UContainerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:
+
 
 	//============================================================================================================
 	//	FUNCTIONS
 	//============================================================================================================
-
+public:
+	
 	UContainerComponent();
 
 	UFUNCTION(Category = "Container") FItemAddResult HandleAddItem(UItemBase* InputItem);
@@ -93,17 +94,7 @@ public:
 	UFUNCTION(Category = "Container") FORCEINLINE void SetSlotsCapacity(const int32 NewSlotsCapacity) { ContainerSlotsCapacity = NewSlotsCapacity; };
 	UFUNCTION(Category = "Container") FORCEINLINE void SetWeightCapacity(const float NewWeightCapacity) { InventoryWeightCapacity = NewWeightCapacity; };
 
-	//============================================================================================================
-	//	PROPERTIES & VARIABLES
-	//============================================================================================================
-
-	FOnContainerUpdated OnContainerUpdated;
-
 protected:
-	
-	//============================================================================================================
-	//	FUNCTIONS
-	//============================================================================================================
 	
 	virtual void BeginPlay() override;
 
@@ -115,11 +106,16 @@ protected:
 	int32 FindFirstFreeSlotIndex();
 	
 	void AddNewItem(UItemBase* Item, const int32 AmountToAdd = 1);
-
+	
 	//============================================================================================================
 	//	PROPERTIES & VARIABLES
 	//============================================================================================================
+public:
+	
+	FOnContainerUpdated OnContainerUpdated;
 
+protected:
+	
 	UPROPERTY(VisibleAnywhere, Category = "Inventory")
 	float InventoryTotalWeight;
 	
