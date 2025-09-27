@@ -6,6 +6,7 @@
 #include "GameFramework/HUD.h"
 #include "AetherworksCharacterHUD.generated.h"
 
+class UInGameUI;
 class UHotbarPanel;
 struct FInteractableData;
 class UInteractionWidget;
@@ -22,10 +23,8 @@ class AETHERWORKS_API AAetherworksCharacterHUD : public AHUD
 public:
 	
 	AAetherworksCharacterHUD();
-
-	void DisplayMenu();
-	void HideMenu();
-	void ToggleMenu();
+	
+	void ToggleMenu() const;
 
 	void ShowCrosshair() const;
 	void HideCrosshair() const;
@@ -42,9 +41,6 @@ protected:
 	//	PROPERTIES & VARIABLES
 	//============================================================================================================
 public:
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
-	TSubclassOf<UMainMenu> MainMenuClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
 	TSubclassOf<UInteractionWidget> InteractionWidgetClass;
@@ -53,22 +49,18 @@ public:
 	TSubclassOf<UUserWidget> CrosshairWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
-	TSubclassOf<UHotbarPanel> HotbarPanelClass;
+	TSubclassOf<UInGameUI> InGameUIClass;
 
 	bool bIsMenuVisible = false;
 
 protected:
 	
 	UPROPERTY()
-	UMainMenu* MainMenuWidget = nullptr;
-
-	UPROPERTY()
 	UInteractionWidget* InteractionWidget = nullptr;
 
 	UPROPERTY()
 	UUserWidget* CrosshairWidget = nullptr;
-
-	UPROPERTY()
-	UHotbarPanel* HotbarWidget = nullptr;
 	
+	UPROPERTY()
+	UInGameUI* InGameUI = nullptr;
 };

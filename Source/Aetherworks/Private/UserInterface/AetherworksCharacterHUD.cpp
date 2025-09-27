@@ -5,6 +5,7 @@
 #include "UserInterface/MainMenu.h"
 #include "UserInterface/Interaction/InteractionWidget.h"
 #include "UserInterface/Inventory/HotbarPanel.h"
+#include "UserInterface/InGameUI.h"
 
 AAetherworksCharacterHUD::AAetherworksCharacterHUD()
 {
@@ -13,14 +14,7 @@ AAetherworksCharacterHUD::AAetherworksCharacterHUD()
 void AAetherworksCharacterHUD::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (MainMenuClass)
-	{
-		MainMenuWidget = CreateWidget<UMainMenu>(GetWorld(), MainMenuClass);
-		MainMenuWidget->AddToViewport(5);
-		MainMenuWidget->SetVisibility(ESlateVisibility::Collapsed);
-	}
-
+	
 	if (InteractionWidgetClass)
 	{
 		InteractionWidget = CreateWidget<UInteractionWidget>(GetWorld(), InteractionWidgetClass);
@@ -35,48 +29,18 @@ void AAetherworksCharacterHUD::BeginPlay()
 		CrosshairWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
-	if (HotbarPanelClass)
+	if (InGameUIClass)
 	{
-		HotbarWidget = CreateWidget<UHotbarPanel>(GetWorld(), HotbarPanelClass);
-		HotbarWidget->AddToViewport(4);
-		HotbarWidget->SetVisibility(ESlateVisibility::Visible);
+		InGameUI = CreateWidget<UInGameUI>(GetWorld(), InGameUIClass);
+		InGameUI->AddToViewport(5);
+		InGameUI->SetPlayerController(GetOwningPlayerController());
+		InGameUI->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
-void AAetherworksCharacterHUD::DisplayMenu()
+void AAetherworksCharacterHUD::ToggleMenu() const
 {
-	if (!MainMenuWidget) return;
-
-	bIsMenuVisible = true;
-	MainMenuWidget->SetVisibility(ESlateVisibility::Visible);
-}
-
-void AAetherworksCharacterHUD::HideMenu()
-{
-	if (!MainMenuWidget) return;
-	
-	bIsMenuVisible = false;
-	MainMenuWidget->SetVisibility(ESlateVisibility::Collapsed);
-}
-
-void AAetherworksCharacterHUD::ToggleMenu()
-{
-	if (bIsMenuVisible)
-	{
-		HideMenu();
-
-		const FInputModeGameOnly InputMode;
-		GetOwningPlayerController()->SetInputMode(InputMode);
-		GetOwningPlayerController()->SetShowMouseCursor(false);
-	}
-	else
-	{
-		DisplayMenu();
-
-		const FInputModeGameAndUI InputMode;
-		GetOwningPlayerController()->SetInputMode(InputMode);
-		GetOwningPlayerController()->SetShowMouseCursor(true);
-	}
+	InGameUI->ToggleInventory();
 }
 
 void AAetherworksCharacterHUD::ShowCrosshair() const
