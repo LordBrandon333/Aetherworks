@@ -2,7 +2,6 @@
 
 
 #include "UserInterface/AetherworksCharacterHUD.h"
-#include "UserInterface/MainMenu.h"
 #include "UserInterface/Interaction/InteractionWidget.h"
 #include "UserInterface/Inventory/HotbarPanel.h"
 #include "UserInterface/InGameUI.h"
@@ -41,6 +40,13 @@ void AAetherworksCharacterHUD::BeginPlay()
 void AAetherworksCharacterHUD::ToggleMenu() const
 {
 	InGameUI->ToggleInventory();
+}
+
+bool AAetherworksCharacterHUD::GetIsMenuVisible() const
+{
+	if (InGameUI)
+		return InGameUI->GetIsMenuVisible();
+	return false;
 }
 
 void AAetherworksCharacterHUD::ShowCrosshair() const

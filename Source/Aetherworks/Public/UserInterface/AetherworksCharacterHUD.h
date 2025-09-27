@@ -25,6 +25,7 @@ public:
 	AAetherworksCharacterHUD();
 	
 	void ToggleMenu() const;
+	bool GetIsMenuVisible() const;
 
 	void ShowCrosshair() const;
 	void HideCrosshair() const;
@@ -50,8 +51,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
 	TSubclassOf<UInGameUI> InGameUIClass;
-
-	bool bIsMenuVisible = false;
 
 protected:
 	

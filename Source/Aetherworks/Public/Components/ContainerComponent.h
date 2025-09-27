@@ -57,8 +57,12 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AETHERWORKS_API UContainerComponent : public UActorComponent
 {
 	GENERATED_BODY()
-	
+
+	//============================================================================================================
+	//	FUNCTIONS
+	//============================================================================================================
 public:
+	
 	UContainerComponent();
 
 	UFUNCTION(Category = "Container") FItemAddResult HandleAddItem(UItemBase* InputItem);
@@ -73,7 +77,6 @@ public:
 	UFUNCTION(Category = "Container") void TryMoveOrSwapOrMerge(UItemBase* ItemToTry, UItemBase* CurrentItemAtIndex, const int32 TargetIndex);
 
 	//=== Getters ===
-	// WICHTIG: virtuell gemacht, damit InventoryComponent die Gesamt-Kapazität (Inv+Hotbar+Equip) zurückgeben kann
 	UFUNCTION(Category = "Container") virtual int32 GetTotalSlotsCapacity() const { return ContainerSlotsCapacity; };
 	UFUNCTION(Category = "Container") FORCEINLINE TArray<UItemBase*> GetContainerContents() const { return ContainerContents; };
 	UFUNCTION(Category = "Container") FORCEINLINE bool CheckIfIndexIsValid(const int32 Index) const { return Index >= 0 && Index < GetTotalSlotsCapacity(); }
@@ -82,26 +85,28 @@ public:
 	//=== Setters ===
 	UFUNCTION(Category = "Container") FORCEINLINE void SetSlotsCapacity(const int32 NewSlotsCapacity) { ContainerSlotsCapacity = NewSlotsCapacity; };
 
-public:
-	FOnContainerUpdated OnContainerUpdated;
-
 protected:
+	
 	virtual void BeginPlay() override;
 
 	virtual FItemAddResult HandleNonStackableItems(UItemBase* InputItem);
 	virtual int32 HandleStackableItems(UItemBase* InputItem, int32 RequestedAddAmount);
 	int32 CalculateNumberForFullStack(UItemBase* StackableItem, int32 InitialRequestAddAmount);
-
-	// Standard: sucht im gesamten [0..GetSlotsCapacity)
+	
 	int32 FindFirstFreeSlotIndex();
-
-	// Neu: sucht in einem expliziten Bereich [Start, End)
 	int32 FindFirstFreeSlotIndexInRange(int32 StartIndexInclusive, int32 EndIndexExclusive);
-
-	// Basis-AddNewItem (legt in ersten freien Slot, kann von abgeleiteten Klassen überschrieben werden)
+	
 	virtual void AddNewItem(UItemBase* Item, const int32 AmountToAdd = 1);
+
+	//============================================================================================================
+	//	PROPERTIES & VARIABLES
+	//============================================================================================================
+public:
+	
+	FOnContainerUpdated OnContainerUpdated;
 	
 protected:
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Container")
 	int32 ContainerSlotsCapacity = 28; // „normales“ Inventar / Kisten-Kapazität (erste Indizes)
 

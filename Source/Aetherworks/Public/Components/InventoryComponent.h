@@ -17,17 +17,19 @@ class AETHERWORKS_API UInventoryComponent : public UContainerComponent
 {
 	GENERATED_BODY()
 
+	//============================================================================================================
+	//	FUNCTIONS
+	//============================================================================================================
 public:
-	// Gewicht
+
 	UFUNCTION(Category = "Container | Inventory") FORCEINLINE float GetInventoryTotalWeight() const { return InventoryTotalWeight; }
 	UFUNCTION(Category = "Container | Inventory") FORCEINLINE float GetWeightCapacity() const { return InventoryWeightCapacity; }
 	UFUNCTION(Category = "Container | Inventory") FORCEINLINE void SetWeightCapacity(const float NewWeightCapacity) { InventoryWeightCapacity = NewWeightCapacity; }
-
-	// WICHTIG: Gesamtzahl der Slots = InventorySlots + Hotbar + Equipment
+	
 	virtual int32 GetTotalSlotsCapacity() const override { return ContainerSlotsCapacity + HotbarSlotCapacity + EquipmentSlotCapacity; }
 	virtual int32 GetAmountOfUsedSlotsInContainer() override;
 
-	// Bereichs-Helper (Indizes)
+	// Region Helper
 	FORCEINLINE int32 GetInventoryStart()  const { return 0; }
 	FORCEINLINE int32 GetInventoryEnd()    const { return ContainerSlotsCapacity; }
 
@@ -37,26 +39,28 @@ public:
 	FORCEINLINE int32 GetEquipmentStart()  const { return ContainerSlotsCapacity + HotbarSlotCapacity; }
 	FORCEINLINE int32 GetEquipmentEnd()    const { return GetTotalSlotsCapacity(); }
 
-	// Freien Slot im jeweiligen Bereich suchen
+	// Search for free slot in certain region
 	int32 FindFirstFreeInventorySlot() { return FindFirstFreeSlotIndexInRange(GetInventoryStart(), GetInventoryEnd()); }
 	int32 FindFirstFreeHotbarSlot()    { return FindFirstFreeSlotIndexInRange(GetHotbarStart(), GetHotbarEnd()); }
 	int32 FindFirstFreeEquipSlot()     { return FindFirstFreeSlotIndexInRange(GetEquipmentStart(), GetEquipmentEnd()); }
 
 	TArray<UItemBase*> GetContainerRegionContents(const EContainerRegion RequestedRegion);
-
-	// Override Remove-Amount (Gewicht)
+	
 	virtual int32 RemoveAmountOfItem(UItemBase* ItemIn, int32 DesiredAmountToRemove) override;
 
 protected:
-	// Gewichtete Varianten
+	
 	virtual FItemAddResult HandleNonStackableItems(UItemBase* InputItem) override;
 	virtual int32 HandleStackableItems(UItemBase* InputItem, int32 RequestedAddAmount) override;
 	int32 CalculateWeightAddAmount(UItemBase* ItemIn, int32 RequestedAmount);
-
-	// NEU: Player-Add legt standardmäßig NUR in den normalen Inventarbereich ab
+	
 	virtual void AddNewItem(UItemBase* Item, const int32 AmountToAdd = 1) override;
 
+	//============================================================================================================
+	//	PROPERTIES & VARIABLES
+	//============================================================================================================
 protected:
+	
 	UPROPERTY(VisibleAnywhere, Category = "Container | Inventory")
 	float InventoryTotalWeight = 0.f;
 

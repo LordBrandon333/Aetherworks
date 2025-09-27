@@ -278,12 +278,12 @@ void AAetherworksCharacter::ToggleMenu()
 {
 	HUD->ToggleMenu();
 
-	if (HUD->bIsMenuVisible) StopAiming();
+	if (HUD->GetIsMenuVisible()) StopAiming();
 }
 
 void AAetherworksCharacter::Aim()
 {
-	if (!HUD->bIsMenuVisible)
+	if (!HUD->GetIsMenuVisible())
 	{
 		bAiming = true;
 		bUseControllerRotationYaw = true;
